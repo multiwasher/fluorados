@@ -988,6 +988,11 @@
           document.getElementById('stats-sem-fugas').textContent = '0';
           document.getElementById('stats-com-fugas').textContent = '0';
           document.getElementById('stats-total-fugas').textContent = '0';
+          
+          // Limpar gráficos
+          if (window.chartFugasResultado) window.chartFugasResultado.destroy();
+          if (window.chartFugasEquip) window.chartFugasEquip.destroy();
+          
           return;
         }
 
@@ -1125,6 +1130,12 @@
           document.getElementById('stats-adicionado').textContent = '0 kg';
           document.getElementById('stats-quantidade').textContent = '0';
           document.getElementById('stats-balanco').textContent = '0 kg';
+          
+          // Limpar gráficos
+          if (window.chartTipos) window.chartTipos.destroy();
+          if (window.chartRecAdd) window.chartRecAdd.destroy();
+          if (window.chartEquip) window.chartEquip.destroy();
+          
           return;
         }
 
@@ -1310,6 +1321,11 @@
           document.getElementById('stats-ensaios-ok').textContent = '0';
           document.getElementById('stats-ensaios-falha').textContent = '0';
           document.getElementById('stats-total-ensaios').textContent = '0';
+          
+          // Limpar gráficos
+          if (window.chartEnsaiosStatus) window.chartEnsaiosStatus.destroy();
+          if (window.chartEnsaiosEquip) window.chartEnsaiosEquip.destroy();
+          
           return;
         }
 
