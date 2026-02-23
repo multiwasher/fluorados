@@ -14,13 +14,15 @@ const SPREADSHEET_ID = "1_dlHxttI4K93g801NIQEjXJhp1aFNUIQIKm8Y0WUEeI";
 const SHEETS = {
   fugas: "Deteção de Fugas",
   intervencoes: "Restantes Intervenções",
-  ensaios: "Ensaio Sist.Aut.Det.Fugas"
+  ensaios: "Ensaio Sist.Aut.Det.Fugas",
+  inventario: "Equipamentos"
 };
 
 const HEADERS = {
   fugas: ["data", "equipamento", "nFicha", "nomeTecnico", "nCertTecnico", "nomeEmpresa", "nCertEmpresa", "moradaEmpresa", "telEmpresa", "locais", "resultado", "medidas", "posReparacao", "obs"],
   intervencoes: ["data", "equipamento", "nFicha", "nomeTecnico", "nCertTecnico", "nomeEmpresa", "nCertEmpresa", "moradaEmpresa", "telEmpresa", "fluido", "tipoIntervencao", "qAntes", "qRec", "qAdd", "qTotal", "obs"],
-  ensaios: ["data", "equipamento", "nFicha", "nomeTecnico", "nCertTecnico", "nomeEmpresa", "nCertEmpresa", "moradaEmpresa", "telEmpresa", "resultado", "obs"]
+  ensaios: ["data", "equipamento", "nFicha", "nomeTecnico", "nCertTecnico", "nomeEmpresa", "nCertEmpresa", "moradaEmpresa", "telEmpresa", "resultado", "obs"],
+  inventario: [] // Headers dinâmicos para Equipamentos
 };
 
 function doGet(e) {
@@ -38,6 +40,7 @@ function doGet(e) {
     if (action === "lerFugas") return lerRegistos("fugas", filters);
     if (action === "lerIntervencoes") return lerRegistos("intervencoes", filters);
     if (action === "lerEnsaios") return lerRegistos("ensaios", filters);
+    if (action === "lerInventario") return lerRegistos("inventario", {});
     if (action === "getEquipamentos") return getEquipamentos();
     
     return json_({ result: "error", message: `Action inválida: "${action}"` });
@@ -64,15 +67,20 @@ function lerRegistos(tipo, filters = {}) {
       return json_({ result: "error", message: `Separador "${sheetName}" não encontrado.` });
     }
 
-    const headers = HEADERS[tipo];
-    if (!headers) {
-      return json_({ result: "error", message: `Tipo desconhecido: "${tipo}"` });
-    }
-
     // Ler todos os dados (pulando a 1ª linha se for header)
     const data = sheet.getDataRange().getValues();
     if (!data || data.length === 0) {
       return json_({ registos: [] });
+    }
+
+    // Para inventario, usar headers dinamicamente da primeira linha
+    let headers = HEADERS[tipo];
+    if (tipo === "inventario" && data.length > 0) {
+      headers = data[0]; // Usar a primeira linha como headers
+    }
+    
+    if (!headers || headers.length === 0) {
+      return json_({ result: "error", message: `Nenhum dados disponível no separador "${sheetName}".` });
     }
 
     // Assumindo que a 1ª linha é header, começar a partir da linha 2
@@ -99,25 +107,28 @@ function lerRegistos(tipo, filters = {}) {
       Logger.log("Primeiro registo equipamento: '" + registos[0].equipamento + "'");
     }
 
-    if (ano && ano.toString().trim() !== "") {
-      const anoFiltro = ano.toString().trim();
-      registos = registos.filter(r => {
-        const dataStr = r.data ? r.data.toString() : "";
-        const contem = dataStr.indexOf(anoFiltro) !== -1;
-        Logger.log("Data: '" + dataStr + "', Procura: '" + anoFiltro + "', Contém: " + contem);
-        return contem;
-      });
-      Logger.log("Registos após filtro de ano: " + registos.length);
-    }
+    // Não aplicar filtros para inventario
+    if (tipo !== "inventario") {
+      if (ano && ano.toString().trim() !== "") {
+        const anoFiltro = ano.toString().trim();
+        registos = registos.filter(r => {
+          const dataStr = r.data ? r.data.toString() : "";
+          const contem = dataStr.indexOf(anoFiltro) !== -1;
+          Logger.log("Data: '" + dataStr + "', Procura: '" + anoFiltro + "', Contém: " + contem);
+          return contem;
+        });
+        Logger.log("Registos após filtro de ano: " + registos.length);
+      }
 
-    if (equipamento && equipamento.toString().trim() !== "") {
-      const equipFiltro = equipamento.toString().trim().toLowerCase();
-      registos = registos.filter(r => {
-        const equipStr = r.equipamento ? r.equipamento.toString().toLowerCase() : "";
-        const igual = equipStr === equipFiltro;
-        return igual;
-      });
-      Logger.log("Registos após filtro de equipamento: " + registos.length);
+      if (equipamento && equipamento.toString().trim() !== "") {
+        const equipFiltro = equipamento.toString().trim().toLowerCase();
+        registos = registos.filter(r => {
+          const equipStr = r.equipamento ? r.equipamento.toString().toLowerCase() : "";
+          const igual = equipStr === equipFiltro;
+          return igual;
+        });
+        Logger.log("Registos após filtro de equipamento: " + registos.length);
+      }
     }
 
     return json_({ registos: registos });

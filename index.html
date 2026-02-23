@@ -308,6 +308,7 @@
         <button onclick="showTab('ensaios')" id="btn-ensaios" class="px-3 lg:px-4 py-3 text-sm lg:text-base">Ensaios</button>
         <button onclick="showTab('leitura')" id="btn-leitura" class="px-3 lg:px-4 py-3 text-sm lg:text-base">Consulta</button>
         <button onclick="showTab('equipamentos')" id="btn-equipamentos" class="px-3 lg:px-4 py-3 text-gray-500 italic text-sm lg:text-base">Equipamentos</button>
+        <button onclick="showTab('inventario')" id="btn-inventario" class="px-3 lg:px-4 py-3 text-sm lg:text-base">Inventário</button>
       </div>
       
       <!-- Mobile Dropdown Menu -->
@@ -317,6 +318,7 @@
         <button onclick="showTab('ensaios'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Ensaio Sist. Aut.</button>
         <button onclick="showTab('leitura'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Consulta de Registos</button>
         <button onclick="showTab('equipamentos'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-gray-500 italic text-sm">Equipamentos (Leitura)</button>
+        <button onclick="showTab('inventario'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Inventário</button>
       </div>
     </div>
   </div>
@@ -711,6 +713,18 @@
       </div>
     </section>
 
+    <!-- SEÇÃO: INVENTÁRIO -->
+    <section id="inventario" class="form-section">
+      <div class="bg-white rounded-lg shadow-md p-3 sm:p-4 md:p-6">
+        <h2 class="text-lg sm:text-xl font-bold mb-2 border-b pb-2">Inventário de Equipamentos</h2>
+        <p class="text-xs sm:text-sm text-gray-500 mb-4">Dados do separador Equipamentos.</p>
+        
+        <div id="inventario-container" class="table-wrapper">
+          <p class="text-gray-500 italic">A carregar...</p>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <div id="toast" class="fixed bottom-4 right-4 text-white px-6 py-3 rounded shadow-lg hidden"></div>
@@ -894,6 +908,7 @@
       document.getElementById(tabId).classList.add('active');
       document.getElementById('btn-' + tabId).classList.add('tab-active');
       if (tabId === 'equipamentos') voltarLista();
+      if (tabId === 'inventario') carregarInventario();
       if (tabId === 'leitura') {
         carregarFugas();
         carregarFiltros();
@@ -955,6 +970,53 @@
       document.getElementById('filter-ano').value = '';
       document.getElementById('filter-equipamento').value = '';
       aplicarFiltros();
+    }
+
+    async function carregarInventario() {
+      const container = document.getElementById('inventario-container');
+      container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+      
+      try {
+        const url = SCRIPT_URL + '?action=lerInventario';
+        const res = await fetch(url, { method: 'GET' });
+        const data = await res.json();
+        
+        if (!data || !data.registos || data.registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum equipamento registado no inventário.</p>';
+          return;
+        }
+        
+        const registos = data.registos;
+        
+        // Criar tabela HTML
+        let html = '<table>';
+        html += '<thead><tr>';
+        
+        // Obter headers dinamicamente do primeiro registo
+        const headers = Object.keys(registos[0]);
+        headers.forEach(h => {
+          html += '<th>' + h + '</th>';
+        });
+        
+        html += '</tr></thead>';
+        html += '<tbody>';
+        
+        registos.forEach(r => {
+          html += '<tr>';
+          headers.forEach(h => {
+            html += '<td>' + (r[h] || '-') + '</td>';
+          });
+          html += '</tr>';
+        });
+        
+        html += '</tbody>';
+        html += '</table>';
+        
+        container.innerHTML = html;
+      } catch (error) {
+        console.error('Erro ao carregar inventário:', error);
+        container.innerHTML = '<p class="text-red-600">Erro ao carregar dados: ' + error.message + '</p>';
+      }
     }
 
     function showLeituraTab(tipo) {
