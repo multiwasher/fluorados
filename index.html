@@ -943,20 +943,16 @@
       container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
       
       try {
-        const ano = document.getElementById('filter-ano').value;
-        const equipamento = document.getElementById('filter-equipamento').value;
-        
-        let url = SCRIPT_URL + '?action=lerFugas';
-        if (ano) url += '&ano=' + encodeURIComponent(ano);
-        if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
-        
+        // Buscar TODOS os dados (sem filtros)
+        const url = SCRIPT_URL + '?action=lerFugas';
         console.log("URL de Fugas:", url);
+        
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
         
-        console.log("Resposta Fugas:", data);
+        console.log("Resposta Fugas (antes de filtro):", data);
         
-        if (!data || !data.registos || data.registos.length === 0) {
+        if (!data || !data.registos) {
           container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
           document.getElementById('stats-sem-fugas').textContent = '0';
           document.getElementById('stats-com-fugas').textContent = '0';
@@ -964,17 +960,48 @@
           return;
         }
 
-        // Calcular estatísticas
+        // Aplicar filtros localmente
+        let registos = data.registos;
+        const ano = document.getElementById('filter-ano').value;
+        const equipamento = document.getElementById('filter-equipamento').value;
+        
+        console.log("Filtros: ano='" + ano + "', equipamento='" + equipamento + "'");
+        
+        if (ano && ano.trim() !== "") {
+          registos = registos.filter(r => {
+            const dataStr = String(r.data || "");
+            return dataStr.includes(ano.trim());
+          });
+          console.log("Después de filtro ano:", registos.length);
+        }
+        
+        if (equipamento && equipamento.trim() !== "") {
+          registos = registos.filter(r => {
+            const equipStr = String(r.equipamento || "").toLowerCase().trim();
+            return equipStr === equipamento.toLowerCase().trim();
+          });
+          console.log("Después de filtro equipamento:", registos.length);
+        }
+        
+        if (registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado com esses filtros</p>';
+          document.getElementById('stats-sem-fugas').textContent = '0';
+          document.getElementById('stats-com-fugas').textContent = '0';
+          document.getElementById('stats-total-fugas').textContent = '0';
+          return;
+        }
+
+        // Calcular estatísticas com os dados FILTRADOS
         let semFugas = 0, comFugas = 0;
-        const equipamentos = {};
+        const equipamentosMap = {};
         const resultados = {};
 
-        data.registos.forEach(r => {
+        registos.forEach(r => {
           const resultado = r.resultado || 'Sem classificação';
           resultados[resultado] = (resultados[resultado] || 0) + 1;
 
           const equip = r.equipamento || 'Sem equipamento';
-          equipamentos[equip] = (equipamentos[equip] || 0) + 1;
+          equipamentosMap[equip] = (equipamentosMap[equip] || 0) + 1;
 
           if (resultado === 'Sem fugas') semFugas++;
           else comFugas++;
@@ -983,7 +1010,7 @@
         // Atualizar estatísticas
         document.getElementById('stats-sem-fugas').textContent = semFugas;
         document.getElementById('stats-com-fugas').textContent = comFugas;
-        document.getElementById('stats-total-fugas').textContent = data.registos.length;
+        document.getElementById('stats-total-fugas').textContent = registos.length;
 
         // Gráfico de resultados
         if (Object.keys(resultados).length > 0) {
@@ -1007,16 +1034,16 @@
         }
 
         // Gráfico por equipamento
-        if (Object.keys(equipamentos).length > 0) {
+        if (Object.keys(equipamentosMap).length > 0) {
           const ctxEquip = document.getElementById('chart-fugas-equipamento').getContext('2d');
           if (window.chartFugasEquip) window.chartFugasEquip.destroy();
           window.chartFugasEquip = new Chart(ctxEquip, {
             type: 'bar',
             data: {
-              labels: Object.keys(equipamentos),
+              labels: Object.keys(equipamentosMap),
               datasets: [{
                 label: 'Deteções',
-                data: Object.values(equipamentos),
+                data: Object.values(equipamentosMap),
                 backgroundColor: '#3b82f6'
               }]
             },
@@ -1034,7 +1061,7 @@
         html += '<th>Data</th><th>Equipamento</th><th>Técnico</th><th>Resultado</th>';
         html += '</tr></thead><tbody>';
         
-        data.registos.forEach(r => {
+        registos.forEach(r => {
           html += `<tr>
             <td>${r.data || '-'}</td>
             <td>${r.equipamento || '-'}</td>
@@ -1055,20 +1082,16 @@
       container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
       
       try {
-        const ano = document.getElementById('filter-ano').value;
-        const equipamento = document.getElementById('filter-equipamento').value;
-        
-        let url = SCRIPT_URL + '?action=lerIntervencoes';
-        if (ano) url += '&ano=' + encodeURIComponent(ano);
-        if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
-        
+        // Buscar TODOS os dados (sem filtros)
+        const url = SCRIPT_URL + '?action=lerIntervencoes';
         console.log("URL de Intervenções:", url);
+        
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
         
-        console.log("Resposta Intervenções:", data);
+        console.log("Resposta Intervenções (antes de filtro):", data);
         
-        if (!data || !data.registos || data.registos.length === 0) {
+        if (!data || !data.registos) {
           container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
           document.getElementById('stats-recuperado').textContent = '0 kg';
           document.getElementById('stats-adicionado').textContent = '0 kg';
@@ -1077,12 +1100,40 @@
           return;
         }
 
-        // Calcular estatísticas
+        // Aplicar filtros localmente
+        let registos = data.registos;
+        const ano = document.getElementById('filter-ano').value;
+        const equipamento = document.getElementById('filter-equipamento').value;
+        
+        if (ano && ano.trim() !== "") {
+          registos = registos.filter(r => {
+            const dataStr = String(r.data || "");
+            return dataStr.includes(ano.trim());
+          });
+        }
+        
+        if (equipamento && equipamento.trim() !== "") {
+          registos = registos.filter(r => {
+            const equipStr = String(r.equipamento || "").toLowerCase().trim();
+            return equipStr === equipamento.toLowerCase().trim();
+          });
+        }
+        
+        if (registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado com esses filtros</p>';
+          document.getElementById('stats-recuperado').textContent = '0 kg';
+          document.getElementById('stats-adicionado').textContent = '0 kg';
+          document.getElementById('stats-quantidade').textContent = '0';
+          document.getElementById('stats-balanco').textContent = '0 kg';
+          return;
+        }
+
+        // Calcular estatísticas COM OS DADOS FILTRADOS
         let totalRec = 0, totalAdd = 0;
         const tiposIntervencao = {};
-        const equipamentos = {};
+        const equipamentosMap = {};
 
-        data.registos.forEach(r => {
+        registos.forEach(r => {
           const rec = parseFloat(r.qRec) || 0;
           const add = parseFloat(r.qAdd) || 0;
           
@@ -1093,11 +1144,11 @@
           tiposIntervencao[tipo] = (tiposIntervencao[tipo] || 0) + 1;
 
           const equip = r.equipamento || 'Sem equipamento';
-          if (!equipamentos[equip]) {
-            equipamentos[equip] = { rec: 0, add: 0 };
+          if (!equipamentosMap[equip]) {
+            equipamentosMap[equip] = { rec: 0, add: 0 };
           }
-          equipamentos[equip].rec += rec;
-          equipamentos[equip].add += add;
+          equipamentosMap[equip].rec += rec;
+          equipamentosMap[equip].add += add;
         });
 
         const balanco = totalAdd - totalRec;
@@ -1105,7 +1156,7 @@
         // Atualizar estatísticas
         document.getElementById('stats-recuperado').textContent = totalRec.toFixed(2) + ' kg';
         document.getElementById('stats-adicionado').textContent = totalAdd.toFixed(2) + ' kg';
-        document.getElementById('stats-quantidade').textContent = data.registos.length;
+        document.getElementById('stats-quantidade').textContent = registos.length;
         document.getElementById('stats-balanco').textContent = (balanco >= 0 ? '+' : '') + balanco.toFixed(2) + ' kg';
 
         // Gráfico de tipos de intervenção
@@ -1158,22 +1209,22 @@
         });
 
         // Gráfico por equipamento
-        if (Object.keys(equipamentos).length > 0) {
+        if (Object.keys(equipamentosMap).length > 0) {
           const ctxEquip = document.getElementById('chart-equipamentos').getContext('2d');
           if (window.chartEquip) window.chartEquip.destroy();
           window.chartEquip = new Chart(ctxEquip, {
             type: 'bar',
             data: {
-              labels: Object.keys(equipamentos),
+              labels: Object.keys(equipamentosMap),
               datasets: [
                 {
                   label: 'Recuperado (kg)',
-                  data: Object.values(equipamentos).map(e => e.rec),
+                  data: Object.values(equipamentosMap).map(e => e.rec),
                   backgroundColor: '#ef4444'
                 },
                 {
                   label: 'Adicionado (kg)',
-                  data: Object.values(equipamentos).map(e => e.add),
+                  data: Object.values(equipamentosMap).map(e => e.add),
                   backgroundColor: '#10b981'
                 }
               ]
@@ -1194,7 +1245,7 @@
         html += '<th>Data</th><th>Equipamento</th><th>Tipo</th><th>Antes (kg)</th><th>Recuperada (kg)</th><th>Adicionada (kg)</th><th>Após (kg)</th>';
         html += '</tr></thead><tbody>';
         
-        data.registos.forEach(r => {
+        registos.forEach(r => {
           html += `<tr>
             <td>${r.data || '-'}</td>
             <td>${r.equipamento || '-'}</td>
@@ -1218,20 +1269,16 @@
       container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
       
       try {
-        const ano = document.getElementById('filter-ano').value;
-        const equipamento = document.getElementById('filter-equipamento').value;
-        
-        let url = SCRIPT_URL + '?action=lerEnsaios';
-        if (ano) url += '&ano=' + encodeURIComponent(ano);
-        if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
-        
+        // Buscar TODOS os dados (sem filtros)
+        const url = SCRIPT_URL + '?action=lerEnsaios';
         console.log("URL de Ensaios:", url);
+        
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
         
-        console.log("Resposta Ensaios:", data);
+        console.log("Resposta Ensaios (antes de filtro):", data);
         
-        if (!data || !data.registos || data.registos.length === 0) {
+        if (!data || !data.registos) {
           container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
           document.getElementById('stats-ensaios-ok').textContent = '0';
           document.getElementById('stats-ensaios-falha').textContent = '0';
@@ -1239,17 +1286,44 @@
           return;
         }
 
-        // Calcular estatísticas
+        // Aplicar filtros localmente
+        let registos = data.registos;
+        const ano = document.getElementById('filter-ano').value;
+        const equipamento = document.getElementById('filter-equipamento').value;
+        
+        if (ano && ano.trim() !== "") {
+          registos = registos.filter(r => {
+            const dataStr = String(r.data || "");
+            return dataStr.includes(ano.trim());
+          });
+        }
+        
+        if (equipamento && equipamento.trim() !== "") {
+          registos = registos.filter(r => {
+            const equipStr = String(r.equipamento || "").toLowerCase().trim();
+            return equipStr === equipamento.toLowerCase().trim();
+          });
+        }
+        
+        if (registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado com esses filtros</p>';
+          document.getElementById('stats-ensaios-ok').textContent = '0';
+          document.getElementById('stats-ensaios-falha').textContent = '0';
+          document.getElementById('stats-total-ensaios').textContent = '0';
+          return;
+        }
+
+        // Calcular estatísticas COM OS DADOS FILTRADOS
         let ensaiosOk = 0, ensaiosFalha = 0;
-        const equipamentos = {};
+        const equipamentosMap = {};
         const resultados = {};
 
-        data.registos.forEach(r => {
+        registos.forEach(r => {
           const resultado = r.resultado || 'Sem resultado';
           resultados[resultado] = (resultados[resultado] || 0) + 1;
 
           const equip = r.equipamento || 'Sem equipamento';
-          equipamentos[equip] = (equipamentos[equip] || 0) + 1;
+          equipamentosMap[equip] = (equipamentosMap[equip] || 0) + 1;
 
           if (resultado.toLowerCase().includes('aprovado') || resultado.toLowerCase().includes('suceso') || resultado.toLowerCase().includes('sim')) {
             ensaiosOk++;
@@ -1261,7 +1335,7 @@
         // Atualizar estatísticas
         document.getElementById('stats-ensaios-ok').textContent = ensaiosOk;
         document.getElementById('stats-ensaios-falha').textContent = ensaiosFalha;
-        document.getElementById('stats-total-ensaios').textContent = data.registos.length;
+        document.getElementById('stats-total-ensaios').textContent = registos.length;
 
         // Gráfico de status
         if (Object.keys(resultados).length > 0) {
@@ -1285,16 +1359,16 @@
         }
 
         // Gráfico por equipamento
-        if (Object.keys(equipamentos).length > 0) {
+        if (Object.keys(equipamentosMap).length > 0) {
           const ctxEquip = document.getElementById('chart-ensaios-equipamento').getContext('2d');
           if (window.chartEnsaiosEquip) window.chartEnsaiosEquip.destroy();
           window.chartEnsaiosEquip = new Chart(ctxEquip, {
             type: 'bar',
             data: {
-              labels: Object.keys(equipamentos),
+              labels: Object.keys(equipamentosMap),
               datasets: [{
                 label: 'Ensaios',
-                data: Object.values(equipamentos),
+                data: Object.values(equipamentosMap),
                 backgroundColor: '#f59e0b'
               }]
             },
@@ -1312,7 +1386,7 @@
         html += '<th>Data</th><th>Equipamento</th><th>Técnico</th><th>Resultado</th>';
         html += '</tr></thead><tbody>';
         
-        data.registos.forEach(r => {
+        registos.forEach(r => {
           html += `<tr>
             <td>${r.data || '-'}</td>
             <td>${r.equipamento || '-'}</td>
