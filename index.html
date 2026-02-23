@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestão de Intervenções F-Gas</title>
+  <title>Gestão de Intervenções - Gases Fluorados</title>
+  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/a6967f_874354ad69c5461eafd229ab23540233~mv2.png">
 
   <!-- Tailwind (opcional, mas estás a usar classes dele) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,13 +13,25 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
+    * { box-sizing: border-box; }
+    
+    /* Mobile-first approach */
     .tab-active { border-bottom: 3px solid rgba(81, 184, 234, 1); color: #2563eb; font-weight: 700; }
     .form-section { display: none; }
     .form-section.active { display: block; }
+    
     input, select, textarea {
-      width: 100%; padding: 12px 24px !important; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px;
+      width: 100%; padding: 10px 12px !important; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px;
       background: #fff !important; box-sizing: border-box; transition: background-color 0.2s ease;
+      font-size: 16px; /* Evita zoom automático em iOS */
     }
+    
+    @media (min-width: 768px) {
+      input, select, textarea {
+        padding: 12px 24px !important;
+      }
+    }
+    
     input.shaded {
       background-color: #f9fafb !important;
     }
@@ -38,15 +51,40 @@
     input.shaded:not(.filled) {
       background-color: #f9fafb !important;
     }
-    label { font-weight: 600; font-size: 0.875rem; color: #374151; }
+    
+    label { font-weight: 600; font-size: 0.8rem; color: #374151; }
+    @media (min-width: 768px) {
+      label { font-size: 0.875rem; }
+    }
+    
     .readonly-card {
-      background-color: #ffffff; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 12px;
+      background-color: #ffffff; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 12px;
       cursor: pointer; transition: all 0.2s;
     }
+    
+    @media (min-width: 768px) {
+      .readonly-card {
+        padding: 1rem;
+      }
+    }
+    
     .readonly-card:hover { border-color: #2563eb; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
-    .detail-row { display: flex; justify-content: space-between; border-bottom: 1px inset #f3f4f6; padding: 6px 0; gap: 12px; }
-    .detail-label { color: #6b7280; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
-    .detail-value { color: #111827; font-size: 0.9rem; text-align: right; font-weight: 600; }
+    
+    .detail-row { display: flex; justify-content: space-between; border-bottom: 1px inset #f3f4f6; padding: 6px 0; gap: 8px; flex-wrap: wrap; }
+    @media (min-width: 768px) {
+      .detail-row { gap: 12px; }
+    }
+    
+    .detail-label { color: #6b7280; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    @media (min-width: 768px) {
+      .detail-label { font-size: 0.72rem; }
+    }
+    
+    .detail-value { color: #111827; font-size: 0.8rem; text-align: right; font-weight: 600; }
+    @media (min-width: 768px) {
+      .detail-value { font-size: 0.9rem; }
+    }
+    
     .btn-loading { opacity: 0.6; pointer-events: none; }
     .hint { font-size: 0.82rem; color: #6b7280; }
     .pill {
@@ -54,48 +92,245 @@
       background: #eef2ff; color: #1e40af; border: 1px solid #c7d2fe;
       padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;
     }
+    
     code.kbd {
       background: #111827; color: #fff; border-radius: 6px; padding: 2px 6px; font-size: 0.85em;
     }
+    
     .leitura-content { display: none; }
     .leitura-content.active { display: block; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+    
+    /* Tabelas responsivas */
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    @media (min-width: 768px) {
+      table { font-size: 0.875rem; }
+    }
+    
+    th, td { border: 1px solid #d1d5db; padding: 6px; text-align: left; }
+    @media (min-width: 768px) {
+      th, td { padding: 8px; }
+    }
+    
     th { background: #f3f4f6; font-weight: 600; }
     tr:hover { background: #f9fafb; }
+    
+    /* Scroll horizontal para tabelas */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 6px;
+      position: relative;
+    }
+    
+    .table-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(to left, rgba(255,255,255,1), transparent);
+      pointer-events: none;
+      border-radius: 0 6px 6px 0;
+    }
+    
+    /* Menu responsivo para abas */
+    .tabs-mobile-menu {
+      display: none;
+      padding: 0.5rem;
+      position: relative;
+    }
+    
+    @media (max-width: 767px) {
+      .tabs-mobile-menu {
+        display: block;
+      }
+      
+      .tabs-container {
+        display: none;
+      }
+      
+      .tabs-mobile-menu.open + .tabs-container {
+        display: flex !important;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        z-index: 10;
+        padding: 0.5rem 0;
+      }
+      
+      .tabs-mobile-menu.open + .tabs-container button {
+        border-bottom: none !important;
+        padding: 0.75rem 1rem !important;
+        text-align: left;
+        border-radius: 0;
+      }
+    }
+    
+    /* Gráficos responsivos */
+    .chart-container {
+      position: relative;
+      height: 250px;
+      margin: 1rem 0;
+    }
+    
+    @media (min-width: 768px) {
+      .chart-container {
+        height: 300px;
+      }
+    }
+    
+    /* Cards de estatísticas responsivas */
+    .stat-card {
+      padding: 0.75rem;
+      border-radius: 8px;
+    }
+    
+    @media (min-width: 768px) {
+      .stat-card {
+        padding: 1rem;
+      }
+    }
+    
+    .stat-card .stat-value {
+      font-size: 1.5rem;
+    }
+    
+    @media (min-width: 768px) {
+      .stat-card .stat-value {
+        font-size: 2rem;
+      }
+    }
+    
+    .stat-card .stat-label {
+      font-size: 0.75rem;
+    }
+    
+    @media (min-width: 768px) {
+      .stat-card .stat-label {
+        font-size: 0.875rem;
+      }
+    }
+    
+    /* Navbar responsiva */
+    nav h1 {
+      font-size: 0.95rem;
+    }
+    
+    @media (min-width: 640px) {
+      nav h1 {
+        font-size: 1.25rem;
+      }
+    }
+    
+    nav img {
+      height: 2rem;
+      width: auto;
+    }
+    
+    @media (min-width: 640px) {
+      nav img {
+        height: 2.5rem;
+      }
+    }
+    
+    /* Buttons responsivos */
+    button {
+      font-size: 0.875rem;
+    }
+    
+    @media (min-width: 768px) {
+      button {
+        font-size: 1rem;
+      }
+    }
+    
+    /* Forms */
+    .form-section {
+      padding: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .form-section {
+        padding: 1.5rem;
+      }
+    }
+    
+    /* Headings */
+    h2 {
+      font-size: 1.1rem;
+    }
+    
+    @media (min-width: 768px) {
+      h2 {
+        font-size: 1.25rem;
+      }
+    }
+    
+    h3 {
+      font-size: 0.95rem;
+    }
+    
+    @media (min-width: 768px) {
+      h3 {
+        font-size: 1.1rem;
+      }
+    }
   </style>
 </head>
 
 <body class="min-h-screen" style="background: radial-gradient(circle at center, rgba(81, 184, 234, 1) 0%, rgba(0, 0, 0, 1) 100%);">
 
-  <nav class="text-white p-4 shadow-lg" style="background: radial-gradient(circle at center, rgba(81, 184, 234, 1) 0%, rgba(0, 0, 0, 1) 100%);">
-    <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
-      <h1 class="text-xl font-bold">Sistema de Registo Técnico — Gases Fluorados</h1>
-      <img src="https://static.wixstatic.com/media/a6967f_982db5e228854134b613cf1ffab4708d~mv2.png" alt="Logo" class="h-10">
+  <nav class="text-white p-3 sm:p-4 shadow-lg" style="background: radial-gradient(circle at center, rgba(81, 184, 234, 1) 0%, rgba(0, 0, 0, 1) 100%);">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+      <h1 class="text-sm sm:text-base md:text-xl font-bold flex-1 leading-tight">GGF - Gestão Gases Fluorados</h1>
+      <img src="https://static.wixstatic.com/media/a6967f_982db5e228854134b613cf1ffab4708d~mv2.png" alt="Logo" class="h-8 sm:h-10 flex-shrink-0">
     </div>
   </nav>
 
   <!-- Navegação por Separadores -->
-  <div class="bg-white shadow-sm overflow-x-auto whitespace-nowrap border-b">
-    <div class="flex px-4 max-w-4xl mx-auto">
-      <button onclick="showTab('fugas')" id="btn-fugas" class="px-4 py-3 tab-active">Deteção de Fugas</button>
-      <button onclick="showTab('intervencoes')" id="btn-intervencoes" class="px-4 py-3">Restantes Intervenções</button>
-      <button onclick="showTab('ensaios')" id="btn-ensaios" class="px-4 py-3">Ensaio Sist. Aut. Det. Fugas</button>
-      <button onclick="showTab('leitura')" id="btn-leitura" class="px-4 py-3">Consulta de Registos</button>
-      <button onclick="showTab('equipamentos')" id="btn-equipamentos" class="px-4 py-3 text-gray-500 italic">Equipamentos (Leitura)</button>
+  <div class="bg-white shadow-sm border-b sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-2 sm:px-4">
+      <!-- Mobile Menu Button -->
+      <button id="tabs-menu-btn" class="md:hidden w-full text-left py-3 font-semibold text-gray-700 flex justify-between items-center">
+        <span id="tabs-menu-label">Menu</span>
+        <span id="tabs-menu-icon">▼</span>
+      </button>
+      
+      <!-- Desktop/Tablet Tabs -->
+      <div class="hidden md:flex overflow-x-auto whitespace-nowrap">
+        <button onclick="showTab('fugas')" id="btn-fugas" class="px-3 lg:px-4 py-3 tab-active text-sm lg:text-base">Deteção de Fugas</button>
+        <button onclick="showTab('intervencoes')" id="btn-intervencoes" class="px-3 lg:px-4 py-3 text-sm lg:text-base">Intervenções</button>
+        <button onclick="showTab('ensaios')" id="btn-ensaios" class="px-3 lg:px-4 py-3 text-sm lg:text-base">Ensaios</button>
+        <button onclick="showTab('leitura')" id="btn-leitura" class="px-3 lg:px-4 py-3 text-sm lg:text-base">Consulta</button>
+        <button onclick="showTab('equipamentos')" id="btn-equipamentos" class="px-3 lg:px-4 py-3 text-gray-500 italic text-sm lg:text-base">Equipamentos</button>
+      </div>
+      
+      <!-- Mobile Dropdown Menu -->
+      <div id="tabs-dropdown" class="hidden md:hidden pb-2">
+        <button onclick="showTab('fugas'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Deteção de Fugas</button>
+        <button onclick="showTab('intervencoes'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Restantes Intervenções</button>
+        <button onclick="showTab('ensaios'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Ensaio Sist. Aut.</button>
+        <button onclick="showTab('leitura'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Consulta de Registos</button>
+        <button onclick="showTab('equipamentos'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-gray-500 italic text-sm">Equipamentos (Leitura)</button>
+      </div>
     </div>
   </div>
 
-  <main class="p-4 max-w-4xl mx-auto">
+  <main class="p-3 sm:p-4 max-w-6xl mx-auto">
 
  
 
     <!-- SEÇÃO: DETEÇÃO DE FUGAS -->
     <section id="fugas" class="form-section active">
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-lg font-bold mb-4 border-b pb-2">Novo Registo: Deteção de Fugas</h2>
+      <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow-md">
+        <h2 class="text-base sm:text-lg font-bold mb-4 border-b pb-2">Novo Registo: Deteção de Fugas</h2>
         <form id="form-fugas" onsubmit="saveData(event, 'fugas')">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div><label>Data</label><input type="date" name="data" required></div>
 
             <div>
@@ -115,8 +350,8 @@
             <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa" class="shaded"></div>
             <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa" class="shaded"></div>
             <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa" class="shaded"></div>
-            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
-            <div class="md:col-span-2"><label>Locais onde foi efetuada deteção de fugas</label><textarea name="locais" rows="2"></textarea></div>
+            <div class="sm:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
+            <div class="sm:col-span-2"><label>Locais onde foi efetuada deteção de fugas</label><textarea name="locais" rows="2"></textarea></div>
 
             <div>
               <label>Resultado da Deteção de Fugas</label>
@@ -134,11 +369,11 @@
               </select>
             </div>
 
-            <div class="md:col-span-2"><label>Medidas Adotadas</label><textarea name="medidas" rows="2"></textarea></div>
-            <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
+            <div class="sm:col-span-2"><label>Medidas Adotadas</label><textarea name="medidas" rows="2"></textarea></div>
+            <div class="sm:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
           </div>
 
-          <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">
+          <button type="submit" class="mt-4 sm:mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 text-sm sm:text-base">
             Guardar
           </button>
         </form>
@@ -147,10 +382,10 @@
 
     <!-- SEÇÃO: RESTANTES INTERVENÇÕES -->
     <section id="intervencoes" class="form-section">
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-lg font-bold mb-4 border-b pb-2">Novo Registo: Restantes Intervenções</h2>
+      <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow-md">
+        <h2 class="text-base sm:text-lg font-bold mb-4 border-b pb-2">Novo Registo: Restantes Intervenções</h2>
         <form id="form-intervencoes" onsubmit="saveData(event, 'intervencoes')">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div><label>Data</label><input type="date" name="data" required></div>
 
             <div>
@@ -175,30 +410,30 @@
             <div><label>Identificação do Fluido Frigorigéneo</label><input type="text" name="fluido" placeholder="Ex: R32, R410A"></div>
             <div><label>Tipo de Intervenção Efetuada</label><input type="text" name="tipoIntervencao" placeholder="Ex: Carga, Recuperação"></div>
 
-            <div class="bg-blue-50 p-3 rounded border border-blue-100">
-              <label>Quantidade antes da intervenção (kg)</label>
+            <div class="bg-blue-50 p-3 rounded border border-blue-100 text-sm sm:text-base">
+              <label>Quantidade antes (kg)</label>
               <input type="number" name="qAntes" step="0.01" id="q_antes" oninput="calcularTotal()">
             </div>
 
-            <div class="bg-red-50 p-3 rounded border border-red-100">
+            <div class="bg-red-50 p-3 rounded border border-red-100 text-sm sm:text-base">
               <label>Quantidade recuperada (kg)</label>
               <input type="number" name="qRec" step="0.01" id="q_rec" oninput="calcularTotal()">
             </div>
 
-            <div class="bg-green-50 p-3 rounded border border-green-100">
+            <div class="bg-green-50 p-3 rounded border border-green-100 text-sm sm:text-base">
               <label>Quantidade adicionada (kg)</label>
               <input type="number" name="qAdd" step="0.01" id="q_add" oninput="calcularTotal()">
             </div>
 
-            <div class="bg-gray-100 p-3 rounded border border-gray-300">
-              <label class="font-bold text-blue-800">Quantidade após a intervenção (kg)</label>
+            <div class="bg-gray-100 p-3 rounded border border-gray-300 text-sm sm:text-base">
+              <label class="font-bold text-blue-800">Quantidade após (kg)</label>
               <input type="number" name="qTotal" step="0.01" id="q_total" readonly class="bg-gray-200 font-bold">
             </div>
 
-            <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
+            <div class="sm:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
           </div>
 
-          <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">
+          <button type="submit" class="mt-4 sm:mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 text-sm sm:text-base">
             Guardar
           </button>
         </form>
@@ -207,10 +442,10 @@
 
     <!-- SEÇÃO: ENSAIO SIST. AUT. -->
     <section id="ensaios" class="form-section">
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-lg font-bold mb-4 border-b pb-2">Registo: Ensaio Sist. Aut. Deteção de Fugas</h2>
+      <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow-md">
+        <h2 class="text-base sm:text-lg font-bold mb-4 border-b pb-2">Registo: Ensaio Sist. Aut. Deteção de Fugas</h2>
         <form id="form-ensaios" onsubmit="saveData(event, 'ensaios')">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div><label>Data</label><input type="date" name="data" required></div>
 
             <div>
@@ -230,12 +465,12 @@
             <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa" class="shaded"></div>
             <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa" class="shaded"></div>
             <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa" class="shaded"></div>
-            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
-            <div class="md:col-span-2"><label>Resultado do Ensaio ao Sistema Automático</label><textarea name="resultado" rows="2"></textarea></div>
-            <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
+            <div class="sm:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
+            <div class="sm:col-span-2"><label>Resultado do Ensaio ao Sistema Automático</label><textarea name="resultado" rows="2"></textarea></div>
+            <div class="sm:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
           </div>
 
-          <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">
+          <button type="submit" class="mt-4 sm:mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 text-sm sm:text-base">
             Guardar
           </button>
         </form>
@@ -244,54 +479,58 @@
 
     <!-- SEÇÃO: CONSULTA DE REGISTOS -->
     <section id="leitura" class="form-section">
-      <div class="space-y-4">
-        <h2 class="text-xl font-bold mb-4">Consulta de Registos</h2>
+      <div class="space-y-3 sm:space-y-4">
+        <h2 class="text-lg sm:text-xl font-bold mb-4">Consulta de Registos</h2>
         
         <!-- Abas de Leitura -->
-        <div class="bg-white shadow-sm border-b">
-          <div class="flex gap-2 p-4">
-            <button onclick="showLeituraTab('fugas')" id="leitura-btn-fugas" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Deteção de Fugas</button>
-            <button onclick="showLeituraTab('intervencoes')" id="leitura-btn-intervencoes" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Intervenções</button>
-            <button onclick="showLeituraTab('ensaios')" id="leitura-btn-ensaios" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Ensaios</button>
+        <div class="bg-white shadow-sm border-b overflow-x-auto -mx-3 sm:mx-0 sm:rounded">
+          <div class="flex gap-1 sm:gap-2 p-2 sm:p-4 whitespace-nowrap sm:whitespace-normal">
+            <button onclick="showLeituraTab('fugas')" id="leitura-btn-fugas" class="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm sm:text-base">Deteção de Fugas</button>
+            <button onclick="showLeituraTab('intervencoes')" id="leitura-btn-intervencoes" class="px-3 sm:px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm sm:text-base">Intervenções</button>
+            <button onclick="showLeituraTab('ensaios')" id="leitura-btn-ensaios" class="px-3 sm:px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm sm:text-base">Ensaios</button>
           </div>
         </div>
 
         <!-- Conteúdo de Fugas -->
         <div id="leitura-fugas" class="leitura-content">
-          <div class="space-y-4">
+          <div class="space-y-3 sm:space-y-4">
             <!-- Análise Visual -->
-            <div id="analise-fugas" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Sem Fugas</div>
-                <div class="text-3xl font-bold" id="stats-sem-fugas">0</div>
+            <div id="analise-fugas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
+              <div class="stat-card bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Sem Fugas</div>
+                <div class="stat-value font-bold" id="stats-sem-fugas">0</div>
               </div>
-              <div class="bg-gradient-to-br from-red-500 to-red-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Com Fugas</div>
-                <div class="text-3xl font-bold" id="stats-com-fugas">0</div>
+              <div class="stat-card bg-gradient-to-br from-red-500 to-red-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Com Fugas</div>
+                <div class="stat-value font-bold" id="stats-com-fugas">0</div>
               </div>
-              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Total Deteções</div>
-                <div class="text-3xl font-bold" id="stats-total-fugas">0</div>
+              <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Total Deteções</div>
+                <div class="stat-value font-bold" id="stats-total-fugas">0</div>
               </div>
             </div>
 
             <!-- Gráficos -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-              <div class="bg-white p-4 rounded-lg shadow">
-                <h4 class="font-bold mb-3">Resultado das Deteções</h4>
-                <canvas id="chart-fugas-resultado"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-4">
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Resultado das Deteções</h4>
+                <div class="chart-container">
+                  <canvas id="chart-fugas-resultado"></canvas>
+                </div>
               </div>
-              <div class="bg-white p-4 rounded-lg shadow">
-                <h4 class="font-bold mb-3">Deteções por Equipamento</h4>
-                <canvas id="chart-fugas-equipamento"></canvas>
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Deteções por Equipamento</h4>
+                <div class="chart-container">
+                  <canvas id="chart-fugas-equipamento"></canvas>
+                </div>
               </div>
             </div>
 
             <!-- Tabela Detalhada -->
-            <div class="bg-white p-4 rounded-lg shadow">
-              <h3 class="font-bold mb-3">Registos: Deteção de Fugas</h3>
-              <div id="tabela-fugas" class="overflow-x-auto">
-                <p class="text-gray-500 italic">A carregar...</p>
+            <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+              <h3 class="font-bold mb-3 text-sm sm:text-base">Registos: Deteção de Fugas</h3>
+              <div id="tabela-fugas" class="table-wrapper">
+                <p class="text-gray-500 italic text-sm">A carregar...</p>
               </div>
             </div>
           </div>
@@ -299,48 +538,54 @@
 
         <!-- Conteúdo de Intervenções -->
         <div id="leitura-intervencoes" class="leitura-content hidden">
-          <div class="space-y-4">
+          <div class="space-y-3 sm:space-y-4">
             <!-- Análise Visual -->
-            <div id="analise-intervencoes" class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
-              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Total Recuperado</div>
-                <div class="text-3xl font-bold" id="stats-recuperado">0 kg</div>
+            <div id="analise-intervencoes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
+              <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Total Recuperado</div>
+                <div class="stat-value font-bold" id="stats-recuperado">0 kg</div>
               </div>
-              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Total Adicionado</div>
-                <div class="text-3xl font-bold" id="stats-adicionado">0 kg</div>
+              <div class="stat-card bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Total Adicionado</div>
+                <div class="stat-value font-bold" id="stats-adicionado">0 kg</div>
               </div>
-              <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Total Intervenções</div>
-                <div class="text-3xl font-bold" id="stats-quantidade">0</div>
+              <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Total Intervenções</div>
+                <div class="stat-value font-bold" id="stats-quantidade">0</div>
               </div>
-              <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Balanço Líquido</div>
-                <div class="text-3xl font-bold" id="stats-balanco">0 kg</div>
+              <div class="stat-card bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Balanço Líquido</div>
+                <div class="stat-value font-bold" id="stats-balanco">0 kg</div>
               </div>
             </div>
 
             <!-- Gráficos -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-              <div class="bg-white p-4 rounded-lg shadow">
-                <h4 class="font-bold mb-3">Tipos de Intervenção</h4>
-                <canvas id="chart-tipos"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-4">
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Tipos de Intervenção</h4>
+                <div class="chart-container">
+                  <canvas id="chart-tipos"></canvas>
+                </div>
               </div>
-              <div class="bg-white p-4 rounded-lg shadow">
-                <h4 class="font-bold mb-3">Gases Recuperados vs Adicionados</h4>
-                <canvas id="chart-recuperado-adicionado"></canvas>
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Gases Recuperados vs Adicionados</h4>
+                <div class="chart-container">
+                  <canvas id="chart-recuperado-adicionado"></canvas>
+                </div>
               </div>
-              <div class="bg-white p-4 rounded-lg shadow lg:col-span-2">
-                <h4 class="font-bold mb-3">Movimentação por Equipamento</h4>
-                <canvas id="chart-equipamentos"></canvas>
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow lg:col-span-2">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Movimentação por Equipamento</h4>
+                <div class="chart-container">
+                  <canvas id="chart-equipamentos"></canvas>
+                </div>
               </div>
             </div>
 
             <!-- Tabela Detalhada -->
-            <div class="bg-white p-4 rounded-lg shadow">
-              <h3 class="font-bold mb-3">Registos: Restantes Intervenções</h3>
-              <div id="tabela-intervencoes" class="overflow-x-auto">
-                <p class="text-gray-500 italic">A carregar...</p>
+            <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+              <h3 class="font-bold mb-3 text-sm sm:text-base">Registos: Restantes Intervenções</h3>
+              <div id="tabela-intervencoes" class="table-wrapper">
+                <p class="text-gray-500 italic text-sm">A carregar...</p>
               </div>
             </div>
           </div>
@@ -348,40 +593,44 @@
 
         <!-- Conteúdo de Ensaios -->
         <div id="leitura-ensaios" class="leitura-content hidden">
-          <div class="space-y-4">
+          <div class="space-y-3 sm:space-y-4">
             <!-- Análise Visual -->
-            <div id="analise-ensaios" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Ensaios Bem-Sucedidos</div>
-                <div class="text-3xl font-bold" id="stats-ensaios-ok">0</div>
+            <div id="analise-ensaios" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
+              <div class="stat-card bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Ensaios Bem-Sucedidos</div>
+                <div class="stat-value font-bold" id="stats-ensaios-ok">0</div>
               </div>
-              <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Ensaios Falhados</div>
-                <div class="text-3xl font-bold" id="stats-ensaios-falha">0</div>
+              <div class="stat-card bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Ensaios Falhados</div>
+                <div class="stat-value font-bold" id="stats-ensaios-falha">0</div>
               </div>
-              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
-                <div class="text-sm opacity-90">Total de Ensaios</div>
-                <div class="text-3xl font-bold" id="stats-total-ensaios">0</div>
+              <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+                <div class="stat-label opacity-90">Total de Ensaios</div>
+                <div class="stat-value font-bold" id="stats-total-ensaios">0</div>
               </div>
             </div>
 
             <!-- Gráficos -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-              <div class="bg-white p-4 rounded-lg shadow">
-                <h4 class="font-bold mb-3">Status dos Ensaios</h4>
-                <canvas id="chart-ensaios-status"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-4">
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Status dos Ensaios</h4>
+                <div class="chart-container">
+                  <canvas id="chart-ensaios-status"></canvas>
+                </div>
               </div>
-              <div class="bg-white p-4 rounded-lg shadow">
-                <h4 class="font-bold mb-3">Ensaios por Equipamento</h4>
-                <canvas id="chart-ensaios-equipamento"></canvas>
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Ensaios por Equipamento</h4>
+                <div class="chart-container">
+                  <canvas id="chart-ensaios-equipamento"></canvas>
+                </div>
               </div>
             </div>
 
             <!-- Tabela Detalhada -->
-            <div class="bg-white p-4 rounded-lg shadow">
-              <h3 class="font-bold mb-3">Registos: Ensaio Sist. Aut. Det. Fugas</h3>
-              <div id="tabela-ensaios" class="overflow-x-auto">
-                <p class="text-gray-500 italic">A carregar...</p>
+            <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+              <h3 class="font-bold mb-3 text-sm sm:text-base">Registos: Ensaio Sist. Aut. Det. Fugas</h3>
+              <div id="tabela-ensaios" class="table-wrapper">
+                <p class="text-gray-500 italic text-sm">A carregar...</p>
               </div>
             </div>
           </div>
@@ -392,13 +641,13 @@
     <!-- SEÇÃO: EQUIPAMENTOS (LISTA E DETALHE) -->
     <section id="equipamentos" class="form-section">
       <div id="lista-equipamentos">
-        <h2 class="text-xl font-bold mb-2">Consulta de Equipamentos</h2>
-        <p class="text-sm text-gray-500 mb-4 italic">Clica num equipamento para ver a ficha técnica completa (só leitura).</p>
+        <h2 class="text-lg sm:text-xl font-bold mb-2">Consulta de Equipamentos</h2>
+        <p class="text-xs sm:text-sm text-gray-500 mb-4 italic">Clica num equipamento para ver a ficha técnica completa (só leitura).</p>
 
-        <div class="grid grid-cols-1 gap-4">
+        <div class="grid grid-cols-1 gap-3 sm:gap-4">
           <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('slzm_rc')">
             <div>
-              <h3 class="font-bold text-blue-700">SLZ-M (Sala Reuniões R/c)</h3>
+              <h3 class="font-bold text-blue-700 text-sm sm:text-base">SLZ-M (Sala Reuniões R/c)</h3>
               <p class="text-xs text-gray-500 uppercase tracking-wider">Mitsubishi Electric — R-32</p>
             </div>
             <span class="text-gray-400">➔</span>
@@ -406,7 +655,7 @@
 
           <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('slzm_serv')">
             <div>
-              <h3 class="font-bold text-blue-700">SLZ-M (Servidor)</h3>
+              <h3 class="font-bold text-blue-700 text-sm sm:text-base">SLZ-M (Servidor)</h3>
               <p class="text-xs text-gray-500 uppercase tracking-wider">Mitsubishi Electric — R-32</p>
             </div>
             <span class="text-gray-400">➔</span>
@@ -414,7 +663,7 @@
 
           <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('au342')">
             <div>
-              <h3 class="font-bold text-blue-700">AU342XHERA</h3>
+              <h3 class="font-bold text-blue-700 text-sm sm:text-base">AU342XHERA</h3>
               <p class="text-xs text-gray-500 uppercase tracking-wider">Haier — R-410A</p>
             </div>
             <span class="text-gray-400">➔</span>
@@ -422,7 +671,7 @@
 
           <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('au362')">
             <div>
-              <h3 class="font-bold text-blue-700">AU362AHERA</h3>
+              <h3 class="font-bold text-blue-700 text-sm sm:text-base">AU362AHERA</h3>
               <p class="text-xs text-gray-500 uppercase tracking-wider">Haier — R-410A</p>
             </div>
             <span class="text-gray-400">➔</span>
@@ -431,7 +680,7 @@
       </div>
 
       <div id="detalhe-equipamento" class="hidden">
-        <button onclick="voltarLista()" class="mb-4 text-blue-600 font-bold flex items-center">
+        <button onclick="voltarLista()" class="mb-4 text-blue-600 font-bold flex items-center text-sm sm:text-base">
           ← Voltar à lista
         </button>
         <div id="detalhe-conteudo" class="bg-white rounded-lg shadow-md overflow-hidden"></div>
@@ -443,6 +692,19 @@
   <div id="toast" class="fixed bottom-4 right-4 text-white px-6 py-3 rounded shadow-lg hidden"></div>
 
   <script>
+    // Menu mobile para tabs
+    function toggleTabsMenu() {
+      const btn = document.getElementById('tabs-menu-btn');
+      const dropdown = document.getElementById('tabs-dropdown');
+      const icon = document.getElementById('tabs-menu-icon');
+      
+      btn.classList.toggle('open');
+      dropdown.classList.toggle('hidden');
+      icon.textContent = btn.classList.contains('open') ? '▲' : '▼';
+    }
+    
+    document.getElementById('tabs-menu-btn')?.addEventListener('click', toggleTabsMenu);
+
     // ✅ URL do teu Web App (tem de ser o /exec da implementação activa)
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRdpQk8jK5QrYfdiJ0SOAwLmXScBusJxvYiR8JJowJbEGSoMKGvvTCxxTgkEkpADxm/exec";
 
@@ -650,6 +912,7 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: { legend: { position: 'bottom' } }
             }
           });
@@ -671,6 +934,7 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               scales: { y: { beginAtZero: true } },
               plugins: { legend: { display: false } }
             }
@@ -678,7 +942,7 @@
         }
 
         // Tabela
-        let html = '<table><thead><tr>';
+        let html = '<div class="table-wrapper"><table><thead><tr>';
         html += '<th>Data</th><th>Equipamento</th><th>Técnico</th><th>Resultado</th>';
         html += '</tr></thead><tbody>';
         
@@ -691,7 +955,7 @@
           </tr>`;
         });
         
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         container.innerHTML = html;
       } catch (error) {
         container.innerHTML = `<p class="text-red-600">Erro ao carregar: ${error.message}</p>`;
@@ -761,6 +1025,7 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: { legend: { position: 'bottom' } }
             }
           });
@@ -789,6 +1054,7 @@
           options: {
             indexAxis: 'y',
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom' } }
           }
         });
@@ -816,6 +1082,7 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               scales: { 
                 y: { beginAtZero: true }
               },
@@ -825,7 +1092,7 @@
         }
 
         // Tabela
-        let html = '<table><thead><tr>';
+        let html = '<div class="table-wrapper"><table><thead><tr>';
         html += '<th>Data</th><th>Equipamento</th><th>Tipo</th><th>Antes (kg)</th><th>Recuperada (kg)</th><th>Adicionada (kg)</th><th>Após (kg)</th>';
         html += '</tr></thead><tbody>';
         
@@ -841,7 +1108,7 @@
           </tr>`;
         });
         
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         container.innerHTML = html;
       } catch (error) {
         container.innerHTML = `<p class="text-red-600">Erro ao carregar: ${error.message}</p>`;
@@ -903,6 +1170,7 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: { legend: { position: 'bottom' } }
             }
           });
@@ -924,6 +1192,7 @@
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               scales: { y: { beginAtZero: true } },
               plugins: { legend: { display: false } }
             }
@@ -931,7 +1200,7 @@
         }
 
         // Tabela
-        let html = '<table><thead><tr>';
+        let html = '<div class="table-wrapper"><table><thead><tr>';
         html += '<th>Data</th><th>Equipamento</th><th>Técnico</th><th>Resultado</th>';
         html += '</tr></thead><tbody>';
         
@@ -944,7 +1213,7 @@
           </tr>`;
         });
         
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         container.innerHTML = html;
       } catch (error) {
         container.innerHTML = `<p class="text-red-600">Erro ao carregar: ${error.message}</p>`;
@@ -955,11 +1224,11 @@
       const equip = dadosEquipamentos[id];
       const contentor = document.getElementById('detalhe-conteudo');
       let html =
-        `<div class="bg-blue-600 p-4 text-white">
-          <h3 class="text-lg font-bold">${equip.titulo}</h3>
+        `<div class="bg-blue-600 p-3 sm:p-4 text-white">
+          <h3 class="text-base sm:text-lg font-bold">${equip.titulo}</h3>
           <p class="text-xs opacity-90 italic">Ficha Técnica - Apenas Consulta</p>
         </div>
-        <div class="p-4 space-y-2">`;
+        <div class="p-3 sm:p-4 space-y-2">`;
 
       equip.campos.forEach(campo => {
         html += `<div class="detail-row">
