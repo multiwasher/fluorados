@@ -313,12 +313,12 @@
       
       <!-- Mobile Dropdown Menu -->
       <div id="tabs-dropdown" class="hidden md:hidden pb-2">
-        <button onclick="showTab('fugas'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Deteção de Fugas</button>
-        <button onclick="showTab('intervencoes'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Restantes Intervenções</button>
-        <button onclick="showTab('ensaios'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Ensaio Sist. Aut.</button>
-        <button onclick="showTab('leitura'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Consulta de Registos</button>
-        <button onclick="showTab('equipamentos'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-gray-500 italic text-sm">Equipamentos (Leitura)</button>
-        <button onclick="showTab('inventario'); toggleTabsMenu()" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Inventário</button>
+        <button onclick="showTab('fugas'); toggleTabsMenu()" id="mobile-btn-fugas" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Deteção de Fugas</button>
+        <button onclick="showTab('intervencoes'); toggleTabsMenu()" id="mobile-btn-intervencoes" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Restantes Intervenções</button>
+        <button onclick="showTab('ensaios'); toggleTabsMenu()" id="mobile-btn-ensaios" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Ensaio Sist. Aut.</button>
+        <button onclick="showTab('leitura'); toggleTabsMenu()" id="mobile-btn-leitura" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Consulta de Registos</button>
+        <button onclick="showTab('equipamentos'); toggleTabsMenu()" id="mobile-btn-equipamentos" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-gray-500 italic text-sm">Equipamentos (Leitura)</button>
+        <button onclick="showTab('inventario'); toggleTabsMenu()" id="mobile-btn-inventario" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm">Inventário</button>
       </div>
     </div>
   </div>
@@ -409,7 +409,16 @@
             <div><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
             <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa" class="shaded"></div>
 
-            <div><label>Identificação do Fluido Frigorigéneo</label><input type="text" name="fluido" placeholder="Ex: R32, R410A"></div>
+            <div>
+              <label>Identificação do Fluido Frigorigéneo</label>
+              <select name="fluido" required>
+                <option value="">Seleciona...</option>
+                <option value="R-410A">R-410A</option>
+                <option value="R32">R32</option>
+                <option value="R-600a">R-600a</option>
+                <option value="SF6">SF6</option>
+              </select>
+            </div>
             <div><label>Tipo de Intervenção Efetuada</label><input type="text" name="tipoIntervencao" placeholder="Ex: Carga, Recuperação"></div>
 
             <div class="bg-blue-50 p-3 rounded border border-blue-100 text-sm sm:text-base">
@@ -756,6 +765,21 @@
           <span class="detail-label">${t[0]}</span>
           <span class="detail-value">${t[1]}</span>
         </div>`}),o+="</div>",a.innerHTML=o,document.getElementById("lista-equipamentos").classList.add("hidden"),document.getElementById("detalhe-equipamento").classList.remove("hidden")}function voltarLista(){document.getElementById("lista-equipamentos").classList.remove("hidden"),document.getElementById("detalhe-equipamento").classList.add("hidden")}function calcularTotal(){parseFloat(document.getElementById("q_antes").value);const t=parseFloat(document.getElementById("q_rec").value)||0,e=parseFloat(document.getElementById("q_add").value)||0;document.getElementById("q_total").value=(t+e).toFixed(2)}async function saveData(t,e){t.preventDefault();const a=t.target,o=a.querySelector('button[type="submit"]'),n=new FormData(a),s={tipo:e};if(n.forEach((t,e)=>s[e]=t),!SCRIPT_URL.includes("/exec"))return void showToast("Erro: URL do Apps Script inválido (tem de terminar em /exec).","bg-red-600");o.classList.add("btn-loading");const i=o.textContent;o.textContent="A gravar...";try{const t=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(s)}),o=await t.text();let n;try{n=JSON.parse(o)}catch{n={raw:o}}if(!t.ok||!n||"success"!==n.result){const e=n&&n.message?n.message:`Falha (HTTP ${t.status}). Resposta: ${o}`;throw new Error(e)}if(showToast(`Gravado ✅ (${n.sheet} · linha ${n.row})`,"bg-green-600"),a.reset(),"intervencoes"===e){const t=document.getElementById("q_total");t&&(t.value="")}}catch(t){showToast("Erro: "+(String(t).includes("Failed to fetch")?"Falha de ligação (CORS/permissões). Confirma: Web App público (Qualquer pessoa) e URL /exec.":t.message||String(t)),"bg-red-600"),console.error(t)}finally{o.classList.remove("btn-loading"),o.textContent=i}}function showToast(t,e){const a=document.getElementById("toast");a.textContent=t,a.className=`fixed bottom-4 right-4 text-white px-6 py-3 rounded shadow-lg ${e}`,a.classList.remove("hidden"),setTimeout(()=>a.classList.add("hidden"),4500)}!function(){const t=document.getElementById("status-pill");if(!SCRIPT_URL.includes("/exec"))return t.textContent="URL inválido",void(t.parentElement.className="pill");t.textContent="pronto"}();
+
+    // Actualizar também os botões mobile ao mudar de aba
+    const originalShowTab = window.showTab;
+    window.showTab = function(tabId) {
+      originalShowTab(tabId);
+      // Highlight mobile buttons too
+      document.querySelectorAll('[id^="mobile-btn-"]').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-blue-600', 'font-bold');
+      });
+      const mobileBtnId = 'mobile-btn-' + tabId;
+      const mobileBtn = document.getElementById(mobileBtnId);
+      if (mobileBtn) {
+        mobileBtn.classList.add('bg-blue-600', 'text-blue-600', 'font-bold');
+      }
+    };
   </script>
 </body>
 </html>
