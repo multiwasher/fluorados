@@ -921,7 +921,7 @@
       aplicarFiltros();
     }
 
-    function showTab(tabId) {
+    function showLeituraTab(tipo) {
       document.querySelectorAll('.leitura-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('[id^="leitura-btn-"]').forEach(el => {
         el.classList.remove('bg-blue-600', 'text-white');
