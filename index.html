@@ -483,7 +483,7 @@
         <h2 class="text-lg sm:text-xl font-bold mb-4">Consulta de Registos</h2>
         
         <!-- Filtros -->
-        <div class="bg-white p-3 sm:p-4 rounded-lg shadow grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+        <div class="bg-white p-3 sm:p-4 rounded-lg shadow grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           <div>
             <label for="filter-ano" class="block font-bold mb-2 text-sm">Filtrar por Ano</label>
             <input type="text" id="filter-ano" placeholder="p.ex. 2024" class="w-full px-3 py-2 border rounded" />
@@ -494,13 +494,7 @@
               <option value="">Todos</option>
             </select>
           </div>
-          <div>
-            <label for="filter-gas" class="block font-bold mb-2 text-sm">Filtrar por Gás</label>
-            <select id="filter-gas" class="w-full px-3 py-2 border rounded">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div class="sm:col-span-3 flex gap-2">
+          <div class="sm:col-span-2 flex gap-2">
             <button onclick="aplicarFiltros()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold text-sm">Aplicar Filtros</button>
             <button onclick="limparFiltros()" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 font-bold text-sm">Limpar</button>
           </div>
@@ -902,24 +896,6 @@
           selectEquip.appendChild(option);
         });
 
-        // Carregar gases
-        const resGas = await fetch(SCRIPT_URL + '?action=getGases', { method: 'GET' });
-        const dataGas = await resGas.json();
-        const selectGas = document.getElementById('filter-gas');
-        
-        // Limpar opções adicionadas anteriormente (manter apenas "Todos")
-        while (selectGas.options.length > 1) {
-          selectGas.remove(1);
-        }
-        
-        if (dataGas.gases) {
-          dataGas.gases.forEach(g => {
-            const option = document.createElement('option');
-            option.value = g;
-            option.textContent = g;
-            selectGas.appendChild(option);
-          });
-        }
       } catch (error) {
         console.error('Erro ao carregar filtros:', error);
       }
@@ -939,7 +915,6 @@
     function limparFiltros() {
       document.getElementById('filter-ano').value = '';
       document.getElementById('filter-equipamento').value = '';
-      document.getElementById('filter-gas').value = '';
       aplicarFiltros();
     }
 
@@ -966,12 +941,10 @@
       try {
         const ano = document.getElementById('filter-ano').value;
         const equipamento = document.getElementById('filter-equipamento').value;
-        const gas = document.getElementById('filter-gas').value;
         
         let url = SCRIPT_URL + '?action=lerFugas';
         if (ano) url += '&ano=' + encodeURIComponent(ano);
         if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
-        if (gas) url += '&gas=' + encodeURIComponent(gas);
         
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
@@ -1077,12 +1050,10 @@
       try {
         const ano = document.getElementById('filter-ano').value;
         const equipamento = document.getElementById('filter-equipamento').value;
-        const gas = document.getElementById('filter-gas').value;
         
         let url = SCRIPT_URL + '?action=lerIntervencoes';
         if (ano) url += '&ano=' + encodeURIComponent(ano);
         if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
-        if (gas) url += '&gas=' + encodeURIComponent(gas);
         
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
@@ -1239,12 +1210,10 @@
       try {
         const ano = document.getElementById('filter-ano').value;
         const equipamento = document.getElementById('filter-equipamento').value;
-        const gas = document.getElementById('filter-gas').value;
         
         let url = SCRIPT_URL + '?action=lerEnsaios';
         if (ano) url += '&ano=' + encodeURIComponent(ano);
         if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
-        if (gas) url += '&gas=' + encodeURIComponent(gas);
         
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();

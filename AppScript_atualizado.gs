@@ -28,15 +28,13 @@ function doGet(e) {
     const action = (e && e.parameter && e.parameter.action) || "";
     const filters = e && e.parameter ? {
       ano: e.parameter.ano || "",
-      equipamento: e.parameter.equipamento || "",
-      gas: e.parameter.gas || ""
-    } : { ano: "", equipamento: "", gas: "" };
+      equipamento: e.parameter.equipamento || ""
+    } : { ano: "", equipamento: "" };
     
     if (action === "lerFugas") return lerRegistos("fugas", filters);
     if (action === "lerIntervencoes") return lerRegistos("intervencoes", filters);
     if (action === "lerEnsaios") return lerRegistos("ensaios", filters);
     if (action === "getEquipamentos") return getEquipamentos();
-    if (action === "getGases") return getGases();
     
     return json_({ result: "error", message: `Action inválida: "${action}"` });
   } catch (error) {
@@ -85,7 +83,7 @@ function lerRegistos(tipo, filters = {}) {
     }
 
     // Aplicar filtros
-    const { ano, equipamento, gas } = filters;
+    const { ano, equipamento } = filters;
 
     if (ano) {
       registos = registos.filter(r => {
@@ -97,12 +95,6 @@ function lerRegistos(tipo, filters = {}) {
     if (equipamento) {
       registos = registos.filter(r => {
         return String(r.equipamento || "").toLowerCase() === equipamento.toLowerCase();
-      });
-    }
-
-    if (gas && (tipo === "intervencoes" || tipo === "ensaios")) {
-      registos = registos.filter(r => {
-        return String(r.fluido || "").toLowerCase().includes(gas.toLowerCase());
       });
     }
 
@@ -256,29 +248,6 @@ function getEquipamentos() {
   }
 }
 
-function getGases() {
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const gases = new Set();
-    
-    // Ler gases das abas de intervencoes e ensaios
-    ["intervencoes", "ensaios"].forEach(tipo => {
-      const sheet = ss.getSheetByName(SHEETS[tipo]);
-      if (sheet && HEADERS[tipo].includes("fluido")) {
-        const data = sheet.getDataRange().getValues();
-        const fluidoIdx = HEADERS[tipo].indexOf("fluido");
-        for (let i = 1; i < data.length; i++) {
-          const gas = String(data[i][fluidoIdx] || "").trim();
-          if (gas) gases.add(gas);
-        }
-      }
-    });
-    
-    return json_({ gases: Array.from(gases).sort() });
-  } catch (error) {
-    return json_({ result: "error", message: String(error) });
-  }
-}
 
 function json_(obj) {
   return ContentService
