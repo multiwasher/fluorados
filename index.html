@@ -766,20 +766,43 @@
           <span class="detail-value">${t[1]}</span>
         </div>`}),o+="</div>",a.innerHTML=o,document.getElementById("lista-equipamentos").classList.add("hidden"),document.getElementById("detalhe-equipamento").classList.remove("hidden")}function voltarLista(){document.getElementById("lista-equipamentos").classList.remove("hidden"),document.getElementById("detalhe-equipamento").classList.add("hidden")}function calcularTotal(){parseFloat(document.getElementById("q_antes").value);const t=parseFloat(document.getElementById("q_rec").value)||0,e=parseFloat(document.getElementById("q_add").value)||0;document.getElementById("q_total").value=(t+e).toFixed(2)}async function saveData(t,e){t.preventDefault();const a=t.target,o=a.querySelector('button[type="submit"]'),n=new FormData(a),s={tipo:e};if(n.forEach((t,e)=>s[e]=t),!SCRIPT_URL.includes("/exec"))return void showToast("Erro: URL do Apps Script inválido (tem de terminar em /exec).","bg-red-600");o.classList.add("btn-loading");const i=o.textContent;o.textContent="A gravar...";try{const t=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(s)}),o=await t.text();let n;try{n=JSON.parse(o)}catch{n={raw:o}}if(!t.ok||!n||"success"!==n.result){const e=n&&n.message?n.message:`Falha (HTTP ${t.status}). Resposta: ${o}`;throw new Error(e)}if(showToast(`Gravado ✅ (${n.sheet} · linha ${n.row})`,"bg-green-600"),a.reset(),"intervencoes"===e){const t=document.getElementById("q_total");t&&(t.value="")}}catch(t){showToast("Erro: "+(String(t).includes("Failed to fetch")?"Falha de ligação (CORS/permissões). Confirma: Web App público (Qualquer pessoa) e URL /exec.":t.message||String(t)),"bg-red-600"),console.error(t)}finally{o.classList.remove("btn-loading"),o.textContent=i}}function showToast(t,e){const a=document.getElementById("toast");a.textContent=t,a.className=`fixed bottom-4 right-4 text-white px-6 py-3 rounded shadow-lg ${e}`,a.classList.remove("hidden"),setTimeout(()=>a.classList.add("hidden"),4500)}!function(){const t=document.getElementById("status-pill");if(!SCRIPT_URL.includes("/exec"))return t.textContent="URL inválido",void(t.parentElement.className="pill");t.textContent="pronto"}();
 
-    // Actualizar também os botões mobile ao mudar de aba
-    const originalShowTab = window.showTab;
-    window.showTab = function(tabId) {
-      originalShowTab(tabId);
-      // Highlight mobile buttons too
-      document.querySelectorAll('[id^="mobile-btn-"]').forEach(b => {
-        b.classList.remove('bg-blue-600', 'text-blue-600', 'font-bold');
+    // Função para atualizar o destaque dos botões do menu baseado na seção ativa
+    function updateMenuHighlight() {
+      // Encontrar qual seção está ativa
+      const activeSection = document.querySelector('.form-section.active');
+      if (!activeSection) return;
+      
+      const activeTabId = activeSection.id;
+      
+      // Desktop buttons
+      document.querySelectorAll('[id^="btn-"]').forEach(btn => {
+        btn.classList.remove('tab-active');
       });
-      const mobileBtnId = 'mobile-btn-' + tabId;
-      const mobileBtn = document.getElementById(mobileBtnId);
+      const desktopBtn = document.getElementById('btn-' + activeTabId);
+      if (desktopBtn) {
+        desktopBtn.classList.add('tab-active');
+      }
+      
+      // Mobile buttons
+      document.querySelectorAll('[id^="mobile-btn-"]').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-blue-600', 'font-bold');
+        btn.classList.add('text-gray-700');
+      });
+      const mobileBtn = document.getElementById('mobile-btn-' + activeTabId);
       if (mobileBtn) {
         mobileBtn.classList.add('bg-blue-600', 'text-blue-600', 'font-bold');
+        mobileBtn.classList.remove('text-gray-700');
       }
-    };
+    }
+
+    // Observar mudanças nas seções ativas
+    const observer = new MutationObserver(updateMenuHighlight);
+    document.querySelectorAll('.form-section').forEach(section => {
+      observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+    });
+    
+    // Chamar uma vez no início
+    updateMenuHighlight();
   </script>
 </body>
 </html>
