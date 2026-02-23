@@ -482,6 +482,30 @@
       <div class="space-y-3 sm:space-y-4">
         <h2 class="text-lg sm:text-xl font-bold mb-4">Consulta de Registos</h2>
         
+        <!-- Filtros -->
+        <div class="bg-white p-3 sm:p-4 rounded-lg shadow grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+          <div>
+            <label for="filter-ano" class="block font-bold mb-2 text-sm">Filtrar por Ano</label>
+            <input type="text" id="filter-ano" placeholder="p.ex. 2024" class="w-full px-3 py-2 border rounded" />
+          </div>
+          <div>
+            <label for="filter-equipamento" class="block font-bold mb-2 text-sm">Filtrar por Equipamento</label>
+            <select id="filter-equipamento" class="w-full px-3 py-2 border rounded">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-gas" class="block font-bold mb-2 text-sm">Filtrar por Gás</label>
+            <select id="filter-gas" class="w-full px-3 py-2 border rounded">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="sm:col-span-3 flex gap-2">
+            <button onclick="aplicarFiltros()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold text-sm">Aplicar Filtros</button>
+            <button onclick="limparFiltros()" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 font-bold text-sm">Limpar</button>
+          </div>
+        </div>
+        
         <!-- Abas de Leitura -->
         <div class="bg-white shadow-sm border-b overflow-x-auto -mx-3 sm:mx-0 sm:rounded">
           <div class="flex gap-1 sm:gap-2 p-2 sm:p-4 whitespace-nowrap sm:whitespace-normal">
@@ -841,10 +865,63 @@
       document.getElementById(tabId).classList.add('active');
       document.getElementById('btn-' + tabId).classList.add('tab-active');
       if (tabId === 'equipamentos') voltarLista();
-      if (tabId === 'leitura') carregarFugas();
+      if (tabId === 'leitura') {
+        carregarFugas();
+        carregarFiltros();
+      }
     }
 
-    function showLeituraTab(tipo) {
+    async function carregarFiltros() {
+      try {
+        // Carregar equipamentos
+        const resEquip = await fetch(SCRIPT_URL + '?action=getEquipamentos', { method: 'GET' });
+        const dataEquip = await resEquip.json();
+        const selectEquip = document.getElementById('filter-equipamento');
+        if (dataEquip.equipamentos) {
+          dataEquip.equipamentos.forEach(e => {
+            const option = document.createElement('option');
+            option.value = e;
+            option.textContent = e;
+            selectEquip.appendChild(option);
+          });
+        }
+
+        // Carregar gases
+        const resGas = await fetch(SCRIPT_URL + '?action=getGases', { method: 'GET' });
+        const dataGas = await resGas.json();
+        const selectGas = document.getElementById('filter-gas');
+        if (dataGas.gases) {
+          dataGas.gases.forEach(g => {
+            const option = document.createElement('option');
+            option.value = g;
+            option.textContent = g;
+            selectGas.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar filtros:', error);
+      }
+    }
+
+    function aplicarFiltros() {
+      const tipoAtivo = document.querySelector('.leitura-content.active');
+      if (!tipoAtivo) return;
+
+      const tipo = tipoAtivo.id.replace('leitura-', '');
+      
+      if (tipo === 'fugas') carregarFugas();
+      else if (tipo === 'intervencoes') carregarIntervencoes();
+      else if (tipo === 'ensaios') carregarEnsaios();
+    }
+
+    function limparFiltros() {
+      document.getElementById('filter-ano').value = '';
+      document.getElementById('filter-equipamento').value = '';
+      document.getElementById('filter-gas').value = '';
+      aplicarFiltros();
+    }
+
+    function showTab(tabId) {
       document.querySelectorAll('.leitura-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('[id^="leitura-btn-"]').forEach(el => {
         el.classList.remove('bg-blue-600', 'text-white');
@@ -865,7 +942,16 @@
       container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
       
       try {
-        const res = await fetch(SCRIPT_URL + '?action=lerFugas', { method: 'GET' });
+        const ano = document.getElementById('filter-ano').value;
+        const equipamento = document.getElementById('filter-equipamento').value;
+        const gas = document.getElementById('filter-gas').value;
+        
+        let url = SCRIPT_URL + '?action=lerFugas';
+        if (ano) url += '&ano=' + encodeURIComponent(ano);
+        if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
+        if (gas) url += '&gas=' + encodeURIComponent(gas);
+        
+        const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
         
         if (!data || !data.registos || data.registos.length === 0) {
@@ -967,7 +1053,16 @@
       container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
       
       try {
-        const res = await fetch(SCRIPT_URL + '?action=lerIntervencoes', { method: 'GET' });
+        const ano = document.getElementById('filter-ano').value;
+        const equipamento = document.getElementById('filter-equipamento').value;
+        const gas = document.getElementById('filter-gas').value;
+        
+        let url = SCRIPT_URL + '?action=lerIntervencoes';
+        if (ano) url += '&ano=' + encodeURIComponent(ano);
+        if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
+        if (gas) url += '&gas=' + encodeURIComponent(gas);
+        
+        const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
         
         if (!data || !data.registos || data.registos.length === 0) {
@@ -1120,7 +1215,16 @@
       container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
       
       try {
-        const res = await fetch(SCRIPT_URL + '?action=lerEnsaios', { method: 'GET' });
+        const ano = document.getElementById('filter-ano').value;
+        const equipamento = document.getElementById('filter-equipamento').value;
+        const gas = document.getElementById('filter-gas').value;
+        
+        let url = SCRIPT_URL + '?action=lerEnsaios';
+        if (ano) url += '&ano=' + encodeURIComponent(ano);
+        if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
+        if (gas) url += '&gas=' + encodeURIComponent(gas);
+        
+        const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
         
         if (!data || !data.registos || data.registos.length === 0) {

@@ -26,10 +26,17 @@ const HEADERS = {
 function doGet(e) {
   try {
     const action = (e && e.parameter && e.parameter.action) || "";
+    const filters = e && e.parameter ? {
+      ano: e.parameter.ano || "",
+      equipamento: e.parameter.equipamento || "",
+      gas: e.parameter.gas || ""
+    } : { ano: "", equipamento: "", gas: "" };
     
-    if (action === "lerFugas") return lerRegistos("fugas");
-    if (action === "lerIntervencoes") return lerRegistos("intervencoes");
-    if (action === "lerEnsaios") return lerRegistos("ensaios");
+    if (action === "lerFugas") return lerRegistos("fugas", filters);
+    if (action === "lerIntervencoes") return lerRegistos("intervencoes", filters);
+    if (action === "lerEnsaios") return lerRegistos("ensaios", filters);
+    if (action === "getEquipamentos") return getEquipamentos();
+    if (action === "getGases") return getGases();
     
     return json_({ result: "error", message: `Action inválida: "${action}"` });
   } catch (error) {
@@ -37,7 +44,7 @@ function doGet(e) {
   }
 }
 
-function lerRegistos(tipo) {
+function lerRegistos(tipo, filters = {}) {
   try {
     let ss;
     try {
@@ -67,7 +74,7 @@ function lerRegistos(tipo) {
     }
 
     // Assumindo que a 1ª linha é header, começar a partir da linha 2
-    const registos = [];
+    let registos = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       const obj = {};
@@ -75,6 +82,28 @@ function lerRegistos(tipo) {
         obj[header] = row[idx] || "";
       });
       registos.push(obj);
+    }
+
+    // Aplicar filtros
+    const { ano, equipamento, gas } = filters;
+
+    if (ano) {
+      registos = registos.filter(r => {
+        const dataStr = String(r.data || "");
+        return dataStr.includes(ano);
+      });
+    }
+
+    if (equipamento) {
+      registos = registos.filter(r => {
+        return String(r.equipamento || "").toLowerCase() === equipamento.toLowerCase();
+      });
+    }
+
+    if (gas && (tipo === "intervencoes" || tipo === "ensaios")) {
+      registos = registos.filter(r => {
+        return String(r.fluido || "").toLowerCase().includes(gas.toLowerCase());
+      });
     }
 
     return json_({ registos: registos });
@@ -202,6 +231,53 @@ function buildRow_(tipo, data) {
     data.resultado || "",
     data.obs || ""
   ];
+}
+
+function getEquipamentos() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const equipamentos = new Set();
+    
+    // Ler de todas as abas que têm equipamento
+    ["fugas", "intervencoes", "ensaios"].forEach(tipo => {
+      const sheet = ss.getSheetByName(SHEETS[tipo]);
+      if (sheet) {
+        const data = sheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          const equip = String(data[i][1] || "").trim();
+          if (equip) equipamentos.add(equip);
+        }
+      }
+    });
+    
+    return json_({ equipamentos: Array.from(equipamentos).sort() });
+  } catch (error) {
+    return json_({ result: "error", message: String(error) });
+  }
+}
+
+function getGases() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const gases = new Set();
+    
+    // Ler gases das abas de intervencoes e ensaios
+    ["intervencoes", "ensaios"].forEach(tipo => {
+      const sheet = ss.getSheetByName(SHEETS[tipo]);
+      if (sheet && HEADERS[tipo].includes("fluido")) {
+        const data = sheet.getDataRange().getValues();
+        const fluidoIdx = HEADERS[tipo].indexOf("fluido");
+        for (let i = 1; i < data.length; i++) {
+          const gas = String(data[i][fluidoIdx] || "").trim();
+          if (gas) gases.add(gas);
+        }
+      }
+    });
+    
+    return json_({ gases: Array.from(gases).sort() });
+  } catch (error) {
+    return json_({ result: "error", message: String(error) });
+  }
 }
 
 function json_(obj) {
