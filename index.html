@@ -597,6 +597,12 @@
                   <canvas id="chart-equipamentos"></canvas>
                 </div>
               </div>
+              <div class="bg-white p-3 sm:p-4 rounded-lg shadow lg:col-span-2">
+                <h4 class="font-bold mb-3 text-sm sm:text-base">Tendência Anual: Recuperado vs Adicionado</h4>
+                <div class="chart-container">
+                  <canvas id="chart-tendencia-anual"></canvas>
+                </div>
+              </div>
             </div>
 
             <!-- Tabela Detalhada -->
@@ -1135,6 +1141,7 @@
           if (window.chartTipos) window.chartTipos.destroy();
           if (window.chartRecAdd) window.chartRecAdd.destroy();
           if (window.chartEquip) window.chartEquip.destroy();
+          if (window.chartTendencia) window.chartTendencia.destroy();
           
           return;
         }
@@ -1244,6 +1251,63 @@
               responsive: true,
               maintainAspectRatio: false,
               scales: { 
+                y: { beginAtZero: true }
+              },
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        }
+
+        // Gráfico de Tendência Anual
+        const anosDados = {};
+        registos.forEach(r => {
+          const dataStr = String(r.data || "");
+          const ano = dataStr.length >= 4 ? dataStr.substring(0, 4) : "Sem ano";
+          
+          if (!anosDados[ano]) {
+            anosDados[ano] = { rec: 0, add: 0 };
+          }
+          
+          const rec = parseFloat(r.qRec) || 0;
+          const add = parseFloat(r.qAdd) || 0;
+          
+          anosDados[ano].rec += rec;
+          anosDados[ano].add += add;
+        });
+
+        if (Object.keys(anosDados).length > 0) {
+          const anosOrdenados = Object.keys(anosDados).sort();
+          const ctxTendencia = document.getElementById('chart-tendencia-anual').getContext('2d');
+          if (window.chartTendencia) window.chartTendencia.destroy();
+          window.chartTendencia = new Chart(ctxTendencia, {
+            type: 'line',
+            data: {
+              labels: anosOrdenados,
+              datasets: [
+                {
+                  label: 'Recuperado (kg)',
+                  data: anosOrdenados.map(ano => anosDados[ano].rec),
+                  borderColor: '#ef4444',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  borderWidth: 2,
+                  tension: 0.4,
+                  fill: true
+                },
+                {
+                  label: 'Adicionado (kg)',
+                  data: anosOrdenados.map(ano => anosDados[ano].add),
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  borderWidth: 2,
+                  tension: 0.4,
+                  fill: true
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
                 y: { beginAtZero: true }
               },
               plugins: { legend: { position: 'bottom' } }
