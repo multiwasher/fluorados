@@ -906,6 +906,10 @@
       if (!tipoAtivo) return;
 
       const tipo = tipoAtivo.id.replace('leitura-', '');
+      const ano = document.getElementById('filter-ano').value;
+      const equipamento = document.getElementById('filter-equipamento').value;
+      
+      console.log("Aplicando filtros - Tipo:", tipo, "Ano:", ano, "Equipamento:", equipamento);
       
       if (tipo === 'fugas') carregarFugas();
       else if (tipo === 'intervencoes') carregarIntervencoes();
@@ -946,8 +950,11 @@
         if (ano) url += '&ano=' + encodeURIComponent(ano);
         if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
         
+        console.log("URL de Fugas:", url);
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
+        
+        console.log("Resposta Fugas:", data);
         
         if (!data || !data.registos || data.registos.length === 0) {
           container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
@@ -1055,8 +1062,11 @@
         if (ano) url += '&ano=' + encodeURIComponent(ano);
         if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
         
+        console.log("URL de Intervenções:", url);
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
+        
+        console.log("Resposta Intervenções:", data);
         
         if (!data || !data.registos || data.registos.length === 0) {
           container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
@@ -1215,8 +1225,11 @@
         if (ano) url += '&ano=' + encodeURIComponent(ano);
         if (equipamento) url += '&equipamento=' + encodeURIComponent(equipamento);
         
+        console.log("URL de Ensaios:", url);
         const res = await fetch(url, { method: 'GET' });
         const data = await res.json();
+        
+        console.log("Resposta Ensaios:", data);
         
         if (!data || !data.registos || data.registos.length === 0) {
           container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';

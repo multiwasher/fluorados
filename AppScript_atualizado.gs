@@ -85,17 +85,27 @@ function lerRegistos(tipo, filters = {}) {
     // Aplicar filtros
     const { ano, equipamento } = filters;
 
-    if (ano) {
+    // DEBUG: Log dos filtros recebidos
+    Logger.log("Filtros recebidos: ano=" + ano + ", equipamento=" + equipamento);
+    Logger.log("Registos antes filtro: " + registos.length);
+
+    if (ano && String(ano).trim() !== "") {
       registos = registos.filter(r => {
         const dataStr = String(r.data || "");
-        return dataStr.includes(ano);
+        const resultado = dataStr.includes(String(ano).trim());
+        return resultado;
       });
+      Logger.log("Registos após filtro de ano: " + registos.length);
     }
 
-    if (equipamento) {
+    if (equipamento && String(equipamento).trim() !== "") {
       registos = registos.filter(r => {
-        return String(r.equipamento || "").toLowerCase() === equipamento.toLowerCase();
+        const equipStr = String(r.equipamento || "").toLowerCase().trim();
+        const equipFiltro = String(equipamento).toLowerCase().trim();
+        const resultado = equipStr === equipFiltro;
+        return resultado;
       });
+      Logger.log("Registos após filtro de equipamento: " + registos.length);
     }
 
     return json_({ registos: registos });
