@@ -31,6 +31,10 @@ function doGet(e) {
       equipamento: e.parameter.equipamento || ""
     } : { ano: "", equipamento: "" };
     
+    Logger.log("=== doGet chamado ===");
+    Logger.log("Action: '" + action + "'");
+    Logger.log("Filters: ano='" + filters.ano + "', equipamento='" + filters.equipamento + "'");
+    
     if (action === "lerFugas") return lerRegistos("fugas", filters);
     if (action === "lerIntervencoes") return lerRegistos("intervencoes", filters);
     if (action === "lerEnsaios") return lerRegistos("ensaios", filters);
@@ -86,24 +90,32 @@ function lerRegistos(tipo, filters = {}) {
     const { ano, equipamento } = filters;
 
     // DEBUG: Log dos filtros recebidos
-    Logger.log("Filtros recebidos: ano=" + ano + ", equipamento=" + equipamento);
+    Logger.log("Filtros recebidos: ano='" + ano + "', equipamento='" + equipamento + "'");
     Logger.log("Registos antes filtro: " + registos.length);
+    
+    // Mostrar alguns registos para debug
+    if (registos.length > 0) {
+      Logger.log("Primeiro registo data: '" + registos[0].data + "'");
+      Logger.log("Primeiro registo equipamento: '" + registos[0].equipamento + "'");
+    }
 
-    if (ano && String(ano).trim() !== "") {
+    if (ano && ano.toString().trim() !== "") {
+      const anoFiltro = ano.toString().trim();
       registos = registos.filter(r => {
-        const dataStr = String(r.data || "");
-        const resultado = dataStr.includes(String(ano).trim());
-        return resultado;
+        const dataStr = r.data ? r.data.toString() : "";
+        const contem = dataStr.indexOf(anoFiltro) !== -1;
+        Logger.log("Data: '" + dataStr + "', Procura: '" + anoFiltro + "', Contém: " + contem);
+        return contem;
       });
       Logger.log("Registos após filtro de ano: " + registos.length);
     }
 
-    if (equipamento && String(equipamento).trim() !== "") {
+    if (equipamento && equipamento.toString().trim() !== "") {
+      const equipFiltro = equipamento.toString().trim().toLowerCase();
       registos = registos.filter(r => {
-        const equipStr = String(r.equipamento || "").toLowerCase().trim();
-        const equipFiltro = String(equipamento).toLowerCase().trim();
-        const resultado = equipStr === equipFiltro;
-        return resultado;
+        const equipStr = r.equipamento ? r.equipamento.toString().toLowerCase() : "";
+        const igual = equipStr === equipFiltro;
+        return igual;
       });
       Logger.log("Registos após filtro de equipamento: " + registos.length);
     }
