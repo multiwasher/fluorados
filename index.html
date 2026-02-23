@@ -774,6 +774,35 @@
     initializeInputShading();
     setTimeout(initializeInputShading, 100);
 
+    // Função para extrair Carga Inicial de um equipamento
+    function obterCargaInicial(nomeEquipamento) {
+      if (!nomeEquipamento) return null;
+      
+      let chaveDados = null;
+      
+      // Mapear nomes com títulos nos dadosEquipamentos
+      for (const chave in dadosEquipamentos) {
+        if (dadosEquipamentos[chave].titulo === nomeEquipamento) {
+          chaveDados = chave;
+          break;
+        }
+      }
+      
+      if (!chaveDados) return null;
+      
+      // Procurar "Carga Inicial" no array de campos
+      const campos = dadosEquipamentos[chaveDados].campos;
+      for (let i = 0; i < campos.length; i++) {
+        if (campos[i][0] === 'Carga Inicial') {
+          // Extrair número do texto (ex: "1,2 kg" → 1.2)
+          const valor = campos[i][1].replace(' kg', '').replace(',', '.');
+          return parseFloat(valor);
+        }
+      }
+      
+      return null;
+    }
+
     const dadosEquipamentos = {
       'slzm_rc': {
         titulo: 'SLZ-M (Sala Reuniões R/c)',
@@ -1277,32 +1306,57 @@
 
         if (Object.keys(anosDados).length > 0) {
           const anosOrdenados = Object.keys(anosDados).sort();
+          
+          // Obter Carga Inicial se há equipamento filtrado
+          const equipamento = document.getElementById('filter-equipamento').value;
+          const cargaInicial = equipamento ? obterCargaInicial(equipamento) : null;
+          
+          // Construir datasets
+          const datasets = [
+            {
+              label: 'Recuperado (kg)',
+              data: anosOrdenados.map(ano => anosDados[ano].rec),
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Adicionado (kg)',
+              data: anosOrdenados.map(ano => anosDados[ano].add),
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+            }
+          ];
+          
+          // Adicionar Carga Inicial se disponível
+          if (cargaInicial !== null) {
+            datasets.push({
+              label: `Carga Inicial: ${cargaInicial} kg`,
+              data: anosOrdenados.map(() => cargaInicial),
+              borderColor: '#8b5cf6',
+              backgroundColor: 'rgba(139, 92, 246, 0)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0,
+              fill: false,
+              pointStyle: 'circle',
+              pointRadius: 4,
+              pointBackgroundColor: '#8b5cf6'
+            });
+          }
+          
           const ctxTendencia = document.getElementById('chart-tendencia-anual').getContext('2d');
           if (window.chartTendencia) window.chartTendencia.destroy();
           window.chartTendencia = new Chart(ctxTendencia, {
             type: 'line',
             data: {
               labels: anosOrdenados,
-              datasets: [
-                {
-                  label: 'Recuperado (kg)',
-                  data: anosOrdenados.map(ano => anosDados[ano].rec),
-                  borderColor: '#ef4444',
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  borderWidth: 2,
-                  tension: 0.4,
-                  fill: true
-                },
-                {
-                  label: 'Adicionado (kg)',
-                  data: anosOrdenados.map(ano => anosDados[ano].add),
-                  borderColor: '#10b981',
-                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                  borderWidth: 2,
-                  tension: 0.4,
-                  fill: true
-                }
-              ]
+              datasets: datasets
             },
             options: {
               responsive: true,
