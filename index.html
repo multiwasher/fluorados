@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestão de Intervenções F-Gas</title>
+
+  <!-- Tailwind (opcional, mas estás a usar classes dele) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .tab-active { border-bottom: 3px solid rgba(81, 184, 234, 1); color: #2563eb; font-weight: 700; }
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    input, select, textarea {
+      width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px;
+      background: #fff;
+    }
+    label { font-weight: 600; font-size: 0.875rem; color: #374151; }
+    .readonly-card {
+      background-color: #ffffff; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .readonly-card:hover { border-color: #2563eb; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+    .detail-row { display: flex; justify-content: space-between; border-bottom: 1px inset #f3f4f6; padding: 6px 0; gap: 12px; }
+    .detail-label { color: #6b7280; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .detail-value { color: #111827; font-size: 0.9rem; text-align: right; font-weight: 600; }
+    .btn-loading { opacity: 0.6; pointer-events: none; }
+    .hint { font-size: 0.82rem; color: #6b7280; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #eef2ff; color: #1e40af; border: 1px solid #c7d2fe;
+      padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;
+    }
+    code.kbd {
+      background: #111827; color: #fff; border-radius: 6px; padding: 2px 6px; font-size: 0.85em;
+    }
+    .leitura-content { display: none; }
+    .leitura-content.active { display: block; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+    th { background: #f3f4f6; font-weight: 600; }
+    tr:hover { background: #f9fafb; }
+  </style>
+</head>
+
+<body class="min-h-screen" style="background: radial-gradient(circle at center, rgba(81, 184, 234, 1) 0%, rgba(0, 0, 0, 1) 100%);">
+
+  <nav class="text-white p-4 shadow-lg" style="background: radial-gradient(circle at center, rgba(81, 184, 234, 1) 0%, rgba(0, 0, 0, 1) 100%);">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+      <h1 class="text-xl font-bold">Sistema de Registo Técnico — Gases Fluorados</h1>
+      <img src="https://static.wixstatic.com/media/a6967f_982db5e228854134b613cf1ffab4708d~mv2.png" alt="Logo" class="h-10">
+    </div>
+  </nav>
+
+  <!-- Navegação por Separadores -->
+  <div class="bg-white shadow-sm overflow-x-auto whitespace-nowrap border-b">
+    <div class="flex px-4 max-w-4xl mx-auto">
+      <button onclick="showTab('fugas')" id="btn-fugas" class="px-4 py-3 tab-active">Deteção de Fugas</button>
+      <button onclick="showTab('intervencoes')" id="btn-intervencoes" class="px-4 py-3">Restantes Intervenções</button>
+      <button onclick="showTab('ensaios')" id="btn-ensaios" class="px-4 py-3">Ensaio Sist. Aut. Det. Fugas</button>
+      <button onclick="showTab('leitura')" id="btn-leitura" class="px-4 py-3">Consulta de Registos</button>
+      <button onclick="showTab('equipamentos')" id="btn-equipamentos" class="px-4 py-3 text-gray-500 italic">Equipamentos (Leitura)</button>
+    </div>
+  </div>
+
+  <main class="p-4 max-w-4xl mx-auto">
+
+ 
+
+    <!-- SEÇÃO: DETEÇÃO DE FUGAS -->
+    <section id="fugas" class="form-section active">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-bold mb-4 border-b pb-2">Novo Registo: Deteção de Fugas</h2>
+        <form id="form-fugas" onsubmit="saveData(event, 'fugas')">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label>Data</label><input type="date" name="data" required></div>
+
+            <div>
+              <label>Equipamento</label>
+              <select name="equipamento" required>
+                <option value="">Seleciona...</option>
+                <option>SLZ-M (Sala Reuniões R/c)</option>
+                <option>SLZ-M (Servidor)</option>
+                <option>AU342XHERA</option>
+                <option>AU362AHERA</option>
+              </select>
+            </div>
+
+            <div><label>N.º da Ficha do Caderno de Registo do Técnico Certificado</label><input type="text" name="nFicha" placeholder="N.º da Ficha"></div>
+            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico" placeholder="Nome completo"></div>
+            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico"></div>
+            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa"></div>
+            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa"></div>
+            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa"></div>
+            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa"></div>
+            <div class="md:col-span-2"><label>Locais onde foi efetuada deteção de fugas</label><textarea name="locais" rows="2"></textarea></div>
+
+            <div>
+              <label>Resultado da Deteção de Fugas</label>
+              <select name="resultado">
+                <option>Sem fugas</option>
+                <option>Fuga detetada</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Controlo pós-reparação necessário?</label>
+              <select name="posReparacao">
+                <option>Não</option>
+                <option>Sim</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2"><label>Medidas Adotadas</label><textarea name="medidas" rows="2"></textarea></div>
+            <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
+          </div>
+
+          <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">
+            Guardar
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SEÇÃO: RESTANTES INTERVENÇÕES -->
+    <section id="intervencoes" class="form-section">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-bold mb-4 border-b pb-2">Novo Registo: Restantes Intervenções</h2>
+        <form id="form-intervencoes" onsubmit="saveData(event, 'intervencoes')">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label>Data</label><input type="date" name="data" required></div>
+
+            <div>
+              <label>Equipamento</label>
+              <select name="equipamento" required>
+                <option value="">Seleciona...</option>
+                <option>SLZ-M (Sala Reuniões R/c)</option>
+                <option>SLZ-M (Servidor)</option>
+                <option>AU342XHERA</option>
+                <option>AU362AHERA</option>
+              </select>
+            </div>
+
+            <div><label>N.º da Ficha do Caderno de Registo do Técnico</label><input type="text" name="nFicha"></div>
+            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico"></div>
+            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico"></div>
+            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa"></div>
+            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa"></div>
+            <div><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa"></div>
+            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa"></div>
+
+            <div><label>Identificação do Fluido Frigorigéneo</label><input type="text" name="fluido" placeholder="Ex: R32, R410A"></div>
+            <div><label>Tipo de Intervenção Efetuada</label><input type="text" name="tipoIntervencao" placeholder="Ex: Carga, Recuperação"></div>
+
+            <div class="bg-blue-50 p-3 rounded border border-blue-100">
+              <label>Quantidade antes da intervenção (kg)</label>
+              <input type="number" name="qAntes" step="0.01" id="q_antes" oninput="calcularTotal()">
+            </div>
+
+            <div class="bg-red-50 p-3 rounded border border-red-100">
+              <label>Quantidade recuperada (kg)</label>
+              <input type="number" name="qRec" step="0.01" id="q_rec" oninput="calcularTotal()">
+            </div>
+
+            <div class="bg-green-50 p-3 rounded border border-green-100">
+              <label>Quantidade adicionada (kg)</label>
+              <input type="number" name="qAdd" step="0.01" id="q_add" oninput="calcularTotal()">
+            </div>
+
+            <div class="bg-gray-100 p-3 rounded border border-gray-300">
+              <label class="font-bold text-blue-800">Quantidade após a intervenção (kg)</label>
+              <input type="number" name="qTotal" step="0.01" id="q_total" readonly class="bg-gray-200 font-bold">
+            </div>
+
+            <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
+          </div>
+
+          <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">
+            Guardar
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SEÇÃO: ENSAIO SIST. AUT. -->
+    <section id="ensaios" class="form-section">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-bold mb-4 border-b pb-2">Registo: Ensaio Sist. Aut. Deteção de Fugas</h2>
+        <form id="form-ensaios" onsubmit="saveData(event, 'ensaios')">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label>Data</label><input type="date" name="data" required></div>
+
+            <div>
+              <label>Equipamento</label>
+              <select name="equipamento" required>
+                <option value="">Seleciona...</option>
+                <option>SLZ-M (Sala Reuniões R/c)</option>
+                <option>SLZ-M (Servidor)</option>
+                <option>AU342XHERA</option>
+                <option>AU362AHERA</option>
+              </select>
+            </div>
+
+            <div><label>N.º da Ficha do Caderno de Registo do Técnico Certificado</label><input type="text" name="nFicha"></div>
+            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico"></div>
+            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico"></div>
+            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa"></div>
+            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa"></div>
+            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa"></div>
+            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa"></div>
+            <div class="md:col-span-2"><label>Resultado do Ensaio ao Sistema Automático</label><textarea name="resultado" rows="2"></textarea></div>
+            <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
+          </div>
+
+          <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">
+            Guardar
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SEÇÃO: CONSULTA DE REGISTOS -->
+    <section id="leitura" class="form-section">
+      <div class="space-y-4">
+        <h2 class="text-xl font-bold mb-4">Consulta de Registos</h2>
+        
+        <!-- Abas de Leitura -->
+        <div class="bg-white shadow-sm border-b">
+          <div class="flex gap-2 p-4">
+            <button onclick="showLeituraTab('fugas')" id="leitura-btn-fugas" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Deteção de Fugas</button>
+            <button onclick="showLeituraTab('intervencoes')" id="leitura-btn-intervencoes" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Intervenções</button>
+            <button onclick="showLeituraTab('ensaios')" id="leitura-btn-ensaios" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Ensaios</button>
+          </div>
+        </div>
+
+        <!-- Conteúdo de Fugas -->
+        <div id="leitura-fugas" class="leitura-content">
+          <div class="space-y-4">
+            <!-- Análise Visual -->
+            <div id="analise-fugas" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Sem Fugas</div>
+                <div class="text-3xl font-bold" id="stats-sem-fugas">0</div>
+              </div>
+              <div class="bg-gradient-to-br from-red-500 to-red-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Com Fugas</div>
+                <div class="text-3xl font-bold" id="stats-com-fugas">0</div>
+              </div>
+              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Total Deteções</div>
+                <div class="text-3xl font-bold" id="stats-total-fugas">0</div>
+              </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3">Resultado das Deteções</h4>
+                <canvas id="chart-fugas-resultado"></canvas>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3">Deteções por Equipamento</h4>
+                <canvas id="chart-fugas-equipamento"></canvas>
+              </div>
+            </div>
+
+            <!-- Tabela Detalhada -->
+            <div class="bg-white p-4 rounded-lg shadow">
+              <h3 class="font-bold mb-3">Registos: Deteção de Fugas</h3>
+              <div id="tabela-fugas" class="overflow-x-auto">
+                <p class="text-gray-500 italic">A carregar...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteúdo de Intervenções -->
+        <div id="leitura-intervencoes" class="leitura-content hidden">
+          <div class="space-y-4">
+            <!-- Análise Visual -->
+            <div id="analise-intervencoes" class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Total Recuperado</div>
+                <div class="text-3xl font-bold" id="stats-recuperado">0 kg</div>
+              </div>
+              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Total Adicionado</div>
+                <div class="text-3xl font-bold" id="stats-adicionado">0 kg</div>
+              </div>
+              <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Total Intervenções</div>
+                <div class="text-3xl font-bold" id="stats-quantidade">0</div>
+              </div>
+              <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Balanço Líquido</div>
+                <div class="text-3xl font-bold" id="stats-balanco">0 kg</div>
+              </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3">Tipos de Intervenção</h4>
+                <canvas id="chart-tipos"></canvas>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3">Gases Recuperados vs Adicionados</h4>
+                <canvas id="chart-recuperado-adicionado"></canvas>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow lg:col-span-2">
+                <h4 class="font-bold mb-3">Movimentação por Equipamento</h4>
+                <canvas id="chart-equipamentos"></canvas>
+              </div>
+            </div>
+
+            <!-- Tabela Detalhada -->
+            <div class="bg-white p-4 rounded-lg shadow">
+              <h3 class="font-bold mb-3">Registos: Restantes Intervenções</h3>
+              <div id="tabela-intervencoes" class="overflow-x-auto">
+                <p class="text-gray-500 italic">A carregar...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteúdo de Ensaios -->
+        <div id="leitura-ensaios" class="leitura-content hidden">
+          <div class="space-y-4">
+            <!-- Análise Visual -->
+            <div id="analise-ensaios" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+              <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Ensaios Bem-Sucedidos</div>
+                <div class="text-3xl font-bold" id="stats-ensaios-ok">0</div>
+              </div>
+              <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Ensaios Falhados</div>
+                <div class="text-3xl font-bold" id="stats-ensaios-falha">0</div>
+              </div>
+              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+                <div class="text-sm opacity-90">Total de Ensaios</div>
+                <div class="text-3xl font-bold" id="stats-total-ensaios">0</div>
+              </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3">Status dos Ensaios</h4>
+                <canvas id="chart-ensaios-status"></canvas>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow">
+                <h4 class="font-bold mb-3">Ensaios por Equipamento</h4>
+                <canvas id="chart-ensaios-equipamento"></canvas>
+              </div>
+            </div>
+
+            <!-- Tabela Detalhada -->
+            <div class="bg-white p-4 rounded-lg shadow">
+              <h3 class="font-bold mb-3">Registos: Ensaio Sist. Aut. Det. Fugas</h3>
+              <div id="tabela-ensaios" class="overflow-x-auto">
+                <p class="text-gray-500 italic">A carregar...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO: EQUIPAMENTOS (LISTA E DETALHE) -->
+    <section id="equipamentos" class="form-section">
+      <div id="lista-equipamentos">
+        <h2 class="text-xl font-bold mb-2">Consulta de Equipamentos</h2>
+        <p class="text-sm text-gray-500 mb-4 italic">Clica num equipamento para ver a ficha técnica completa (só leitura).</p>
+
+        <div class="grid grid-cols-1 gap-4">
+          <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('slzm_rc')">
+            <div>
+              <h3 class="font-bold text-blue-700">SLZ-M (Sala Reuniões R/c)</h3>
+              <p class="text-xs text-gray-500 uppercase tracking-wider">Mitsubishi Electric — R-32</p>
+            </div>
+            <span class="text-gray-400">➔</span>
+          </div>
+
+          <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('slzm_serv')">
+            <div>
+              <h3 class="font-bold text-blue-700">SLZ-M (Servidor)</h3>
+              <p class="text-xs text-gray-500 uppercase tracking-wider">Mitsubishi Electric — R-32</p>
+            </div>
+            <span class="text-gray-400">➔</span>
+          </div>
+
+          <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('au342')">
+            <div>
+              <h3 class="font-bold text-blue-700">AU342XHERA</h3>
+              <p class="text-xs text-gray-500 uppercase tracking-wider">Haier — R-410A</p>
+            </div>
+            <span class="text-gray-400">➔</span>
+          </div>
+
+          <div class="readonly-card flex justify-between items-center" onclick="verDetalhe('au362')">
+            <div>
+              <h3 class="font-bold text-blue-700">AU362AHERA</h3>
+              <p class="text-xs text-gray-500 uppercase tracking-wider">Haier — R-410A</p>
+            </div>
+            <span class="text-gray-400">➔</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="detalhe-equipamento" class="hidden">
+        <button onclick="voltarLista()" class="mb-4 text-blue-600 font-bold flex items-center">
+          ← Voltar à lista
+        </button>
+        <div id="detalhe-conteudo" class="bg-white rounded-lg shadow-md overflow-hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="fixed bottom-4 right-4 text-white px-6 py-3 rounded shadow-lg hidden"></div>
+
+  <script>
+    // ✅ URL do teu Web App (tem de ser o /exec da implementação activa)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRdpQk8jK5QrYfdiJ0SOAwLmXScBusJxvYiR8JJowJbEGSoMKGvvTCxxTgkEkpADxm/exec";
+
+    // ✅ ID do ficheiro (do teu link)
+    // https://docs.google.com/spreadsheets/d/1_dlHxttI4K93g801NIQEjXJhp1aFNUIQIKm8Y0WUEeI/edit
+    const SPREADSHEET_ID = "1_dlHxttI4K93g801NIQEjXJhp1aFNUIQIKm8Y0WUEeI";
+
+    const dadosEquipamentos = {
+      'slzm_rc': {
+        titulo: 'SLZ-M (Sala Reuniões R/c)',
+        campos: [
+          ['Operador', 'Somengil, S.A.'],
+          ['NIF Operador', '506111431'],
+          ['Endereço', 'Zona Industrial de Vagos, Lote 91 – 3840-385 Vagos, Portugal'],
+          ['Telefone', '(+351) 234 799 640'],
+          ['Localização', 'Fábrica / Sala Técnica / Escritório'],
+          ['Tipo', 'Ar Condicionado (Mono/Multisplit)'],
+          ['Hermeticamente Fechado?', 'Não'],
+          ['Marca', 'Mitsubishi Electric'],
+          ['Modelo', 'Unidade Exterior SUZ-M50VA'],
+          ['N.º de Série', '[preencher nº série]'],
+          ['Ano Fabrico', '2023–2024'],
+          ['Potência Calor/Frio', '5,8 / 5,0 kW'],
+          ['Potência Elétrica', '≈ 1,6 kW'],
+          ['Fluido', 'R-32'],
+          ['Carga Inicial', '1,2 kg']
+        ]
+      },
+      'slzm_serv': {
+        titulo: 'SLZ-M (Servidor)',
+        campos: [
+          ['Operador', 'Somengil, S.A.'],
+          ['NIF Operador', '506111431'],
+          ['Endereço', 'Zona Industrial de Vagos, Lote 91 – 3840-385 Vagos, Portugal'],
+          ['Telefone', '(+351) 234 799 640'],
+          ['Localização', 'Fábrica / Sala Técnica / Escritório'],
+          ['Tipo', 'Ar Condicionado (Mono/Multisplit)'],
+          ['Hermeticamente Fechado?', 'Não'],
+          ['Marca', 'Mitsubishi Electric'],
+          ['Modelo', 'Unidade Exterior SUZ-M50VA'],
+          ['N.º de Série', '[preencher nº série]'],
+          ['Ano Fabrico', '2023–2024'],
+          ['Potência Calor/Frio', '5,8 / 5,0 kW'],
+          ['Potência Elétrica', '≈ 1,6 kW'],
+          ['Fluido', 'R-32'],
+          ['Carga Inicial', '1,2 kg']
+        ]
+      },
+      'au342': {
+        titulo: 'AU342XHERA',
+        campos: [
+          ['Operador', 'Somengil, S.A.'],
+          ['NIF Operador', '506111431'],
+          ['Endereço', 'Zona Industrial de Vagos, Lote 91 – 3840-385 Vagos, Portugal'],
+          ['Telefone', '(+351) 234 799 640'],
+          ['Localização', 'Fábrica / Sala Técnica / Escritório'],
+          ['Tipo', 'Ar Condicionado (Mono/Multisplit)'],
+          ['Hermeticamente Fechado?', 'Não'],
+          ['Marca', 'Haier'],
+          ['Modelo', 'Unidade Exterior AU342XHERA'],
+          ['N.º de Série', '[preencher nº série]'],
+          ['Ano Fabrico', '2008'],
+          ['Potência Calor/Frio', '11 / 10 kW'],
+          ['Potência Elétrica', '≈ 3,2 kW'],
+          ['Fluido', 'R-410A'],
+          ['Carga Inicial', '3 kg'],
+          ['CO₂ equivalente', '6,26 tCO2']
+        ]
+      },
+      'au362': {
+        titulo: 'AU362AHERA',
+        campos: [
+          ['Operador', 'Somengil, S.A.'],
+          ['NIF Operador', '506111431'],
+          ['Endereço', 'Zona Industrial de Vagos, Lote 91 – 3840-385 Vagos, Portugal'],
+          ['Telefone', '(+351) 234 799 640'],
+          ['Localização', 'Fábrica / Sala Técnica / Escritório'],
+          ['Tipo', 'Ar Condicionado (Mono/Multisplit)'],
+          ['Hermeticamente Fechado?', 'Não'],
+          ['Marca', 'Haier'],
+          ['Modelo', 'Unidade Exterior AU362AHERA'],
+          ['N.º de Série', '[preencher nº série]'],
+          ['Ano Fabrico', '2008'],
+          ['Potência Calor/Frio', '5,3 / 6,0 kW'],
+          ['Potência Elétrica', '≈ 1,65 kW'],
+          ['Fluido', 'R-410A'],
+          ['Carga Inicial', '2,65 kg'],
+          ['CO₂ equivalente', '5,53 tCO2']
+        ]
+      }
+    };
+
+    function showTab(tabId) {
+      document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('nav button, .flex button').forEach(b => b.classList.remove('tab-active'));
+      document.getElementById(tabId).classList.add('active');
+      document.getElementById('btn-' + tabId).classList.add('tab-active');
+      if (tabId === 'equipamentos') voltarLista();
+      if (tabId === 'leitura') carregarFugas();
+    }
+
+    function showLeituraTab(tipo) {
+      document.querySelectorAll('.leitura-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('[id^="leitura-btn-"]').forEach(el => {
+        el.classList.remove('bg-blue-600', 'text-white');
+        el.classList.add('bg-gray-300', 'text-gray-700');
+      });
+      
+      document.getElementById('leitura-' + tipo).classList.add('active');
+      document.getElementById('leitura-btn-' + tipo).classList.remove('bg-gray-300', 'text-gray-700');
+      document.getElementById('leitura-btn-' + tipo).classList.add('bg-blue-600', 'text-white');
+      
+      if (tipo === 'fugas') carregarFugas();
+      else if (tipo === 'intervencoes') carregarIntervencoes();
+      else if (tipo === 'ensaios') carregarEnsaios();
+    }
+
+    async function carregarFugas() {
+      const container = document.getElementById('tabela-fugas');
+      container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+      
+      try {
+        const res = await fetch(SCRIPT_URL + '?action=lerFugas', { method: 'GET' });
+        const data = await res.json();
+        
+        if (!data || !data.registos || data.registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
+          document.getElementById('stats-sem-fugas').textContent = '0';
+          document.getElementById('stats-com-fugas').textContent = '0';
+          document.getElementById('stats-total-fugas').textContent = '0';
+          return;
+        }
+
+        // Calcular estatísticas
+        let semFugas = 0, comFugas = 0;
+        const equipamentos = {};
+        const resultados = {};
+
+        data.registos.forEach(r => {
+          const resultado = r.resultado || 'Sem classificação';
+          resultados[resultado] = (resultados[resultado] || 0) + 1;
+
+          const equip = r.equipamento || 'Sem equipamento';
+          equipamentos[equip] = (equipamentos[equip] || 0) + 1;
+
+          if (resultado === 'Sem fugas') semFugas++;
+          else comFugas++;
+        });
+
+        // Atualizar estatísticas
+        document.getElementById('stats-sem-fugas').textContent = semFugas;
+        document.getElementById('stats-com-fugas').textContent = comFugas;
+        document.getElementById('stats-total-fugas').textContent = data.registos.length;
+
+        // Gráfico de resultados
+        if (Object.keys(resultados).length > 0) {
+          const ctxResultado = document.getElementById('chart-fugas-resultado').getContext('2d');
+          if (window.chartFugasResultado) window.chartFugasResultado.destroy();
+          window.chartFugasResultado = new Chart(ctxResultado, {
+            type: 'pie',
+            data: {
+              labels: Object.keys(resultados),
+              datasets: [{
+                data: Object.values(resultados),
+                backgroundColor: ['#10b981', '#ef4444', '#6b7280']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        }
+
+        // Gráfico por equipamento
+        if (Object.keys(equipamentos).length > 0) {
+          const ctxEquip = document.getElementById('chart-fugas-equipamento').getContext('2d');
+          if (window.chartFugasEquip) window.chartFugasEquip.destroy();
+          window.chartFugasEquip = new Chart(ctxEquip, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(equipamentos),
+              datasets: [{
+                label: 'Deteções',
+                data: Object.values(equipamentos),
+                backgroundColor: '#3b82f6'
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: { y: { beginAtZero: true } },
+              plugins: { legend: { display: false } }
+            }
+          });
+        }
+
+        // Tabela
+        let html = '<table><thead><tr>';
+        html += '<th>Data</th><th>Equipamento</th><th>Técnico</th><th>Resultado</th>';
+        html += '</tr></thead><tbody>';
+        
+        data.registos.forEach(r => {
+          html += `<tr>
+            <td>${r.data || '-'}</td>
+            <td>${r.equipamento || '-'}</td>
+            <td>${r.nomeTecnico || '-'}</td>
+            <td><span class="px-2 py-1 rounded text-xs ${r.resultado === 'Sem fugas' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${r.resultado || '-'}</span></td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = `<p class="text-red-600">Erro ao carregar: ${error.message}</p>`;
+      }
+    }
+
+    async function carregarIntervencoes() {
+      const container = document.getElementById('tabela-intervencoes');
+      container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+      
+      try {
+        const res = await fetch(SCRIPT_URL + '?action=lerIntervencoes', { method: 'GET' });
+        const data = await res.json();
+        
+        if (!data || !data.registos || data.registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
+          document.getElementById('stats-recuperado').textContent = '0 kg';
+          document.getElementById('stats-adicionado').textContent = '0 kg';
+          document.getElementById('stats-quantidade').textContent = '0';
+          document.getElementById('stats-balanco').textContent = '0 kg';
+          return;
+        }
+
+        // Calcular estatísticas
+        let totalRec = 0, totalAdd = 0;
+        const tiposIntervencao = {};
+        const equipamentos = {};
+
+        data.registos.forEach(r => {
+          const rec = parseFloat(r.qRec) || 0;
+          const add = parseFloat(r.qAdd) || 0;
+          
+          totalRec += rec;
+          totalAdd += add;
+
+          const tipo = r.tipoIntervencao || 'Sem tipo';
+          tiposIntervencao[tipo] = (tiposIntervencao[tipo] || 0) + 1;
+
+          const equip = r.equipamento || 'Sem equipamento';
+          if (!equipamentos[equip]) {
+            equipamentos[equip] = { rec: 0, add: 0 };
+          }
+          equipamentos[equip].rec += rec;
+          equipamentos[equip].add += add;
+        });
+
+        const balanco = totalAdd - totalRec;
+
+        // Atualizar estatísticas
+        document.getElementById('stats-recuperado').textContent = totalRec.toFixed(2) + ' kg';
+        document.getElementById('stats-adicionado').textContent = totalAdd.toFixed(2) + ' kg';
+        document.getElementById('stats-quantidade').textContent = data.registos.length;
+        document.getElementById('stats-balanco').textContent = (balanco >= 0 ? '+' : '') + balanco.toFixed(2) + ' kg';
+
+        // Gráfico de tipos de intervenção
+        if (Object.keys(tiposIntervencao).length > 0) {
+          const ctxTipos = document.getElementById('chart-tipos').getContext('2d');
+          if (window.chartTipos) window.chartTipos.destroy();
+          window.chartTipos = new Chart(ctxTipos, {
+            type: 'doughnut',
+            data: {
+              labels: Object.keys(tiposIntervencao),
+              datasets: [{
+                data: Object.values(tiposIntervencao),
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        }
+
+        // Gráfico recuperado vs adicionado
+        const ctxRecAdd = document.getElementById('chart-recuperado-adicionado').getContext('2d');
+        if (window.chartRecAdd) window.chartRecAdd.destroy();
+        window.chartRecAdd = new Chart(ctxRecAdd, {
+          type: 'bar',
+          data: {
+            labels: ['Total'],
+            datasets: [
+              {
+                label: 'Recuperado',
+                data: [totalRec],
+                backgroundColor: '#ef4444'
+              },
+              {
+                label: 'Adicionado',
+                data: [totalAdd],
+                backgroundColor: '#10b981'
+              }
+            ]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+
+        // Gráfico por equipamento
+        if (Object.keys(equipamentos).length > 0) {
+          const ctxEquip = document.getElementById('chart-equipamentos').getContext('2d');
+          if (window.chartEquip) window.chartEquip.destroy();
+          window.chartEquip = new Chart(ctxEquip, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(equipamentos),
+              datasets: [
+                {
+                  label: 'Recuperado (kg)',
+                  data: Object.values(equipamentos).map(e => e.rec),
+                  backgroundColor: '#ef4444'
+                },
+                {
+                  label: 'Adicionado (kg)',
+                  data: Object.values(equipamentos).map(e => e.add),
+                  backgroundColor: '#10b981'
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              scales: { 
+                y: { beginAtZero: true }
+              },
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        }
+
+        // Tabela
+        let html = '<table><thead><tr>';
+        html += '<th>Data</th><th>Equipamento</th><th>Tipo</th><th>Antes (kg)</th><th>Recuperada (kg)</th><th>Adicionada (kg)</th><th>Após (kg)</th>';
+        html += '</tr></thead><tbody>';
+        
+        data.registos.forEach(r => {
+          html += `<tr>
+            <td>${r.data || '-'}</td>
+            <td>${r.equipamento || '-'}</td>
+            <td>${r.tipoIntervencao || '-'}</td>
+            <td class="font-mono">${r.qAntes || '-'}</td>
+            <td class="font-mono text-red-600">${r.qRec || '-'}</td>
+            <td class="font-mono text-green-600">${r.qAdd || '-'}</td>
+            <td class="font-mono font-bold">${r.qTotal || '-'}</td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = `<p class="text-red-600">Erro ao carregar: ${error.message}</p>`;
+      }
+    }
+
+    async function carregarEnsaios() {
+      const container = document.getElementById('tabela-ensaios');
+      container.innerHTML = '<p class="text-gray-500">A carregar...</p>';
+      
+      try {
+        const res = await fetch(SCRIPT_URL + '?action=lerEnsaios', { method: 'GET' });
+        const data = await res.json();
+        
+        if (!data || !data.registos || data.registos.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 italic">Nenhum registo encontrado</p>';
+          document.getElementById('stats-ensaios-ok').textContent = '0';
+          document.getElementById('stats-ensaios-falha').textContent = '0';
+          document.getElementById('stats-total-ensaios').textContent = '0';
+          return;
+        }
+
+        // Calcular estatísticas
+        let ensaiosOk = 0, ensaiosFalha = 0;
+        const equipamentos = {};
+        const resultados = {};
+
+        data.registos.forEach(r => {
+          const resultado = r.resultado || 'Sem resultado';
+          resultados[resultado] = (resultados[resultado] || 0) + 1;
+
+          const equip = r.equipamento || 'Sem equipamento';
+          equipamentos[equip] = (equipamentos[equip] || 0) + 1;
+
+          if (resultado.toLowerCase().includes('aprovado') || resultado.toLowerCase().includes('suceso') || resultado.toLowerCase().includes('sim')) {
+            ensaiosOk++;
+          } else if (resultado.toLowerCase().includes('reprovado') || resultado.toLowerCase().includes('falha') || resultado.toLowerCase().includes('não')) {
+            ensaiosFalha++;
+          }
+        });
+
+        // Atualizar estatísticas
+        document.getElementById('stats-ensaios-ok').textContent = ensaiosOk;
+        document.getElementById('stats-ensaios-falha').textContent = ensaiosFalha;
+        document.getElementById('stats-total-ensaios').textContent = data.registos.length;
+
+        // Gráfico de status
+        if (Object.keys(resultados).length > 0) {
+          const ctxStatus = document.getElementById('chart-ensaios-status').getContext('2d');
+          if (window.chartEnsaiosStatus) window.chartEnsaiosStatus.destroy();
+          window.chartEnsaiosStatus = new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+              labels: Object.keys(resultados),
+              datasets: [{
+                data: Object.values(resultados),
+                backgroundColor: ['#10b981', '#ef4444', '#6b7280']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        }
+
+        // Gráfico por equipamento
+        if (Object.keys(equipamentos).length > 0) {
+          const ctxEquip = document.getElementById('chart-ensaios-equipamento').getContext('2d');
+          if (window.chartEnsaiosEquip) window.chartEnsaiosEquip.destroy();
+          window.chartEnsaiosEquip = new Chart(ctxEquip, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(equipamentos),
+              datasets: [{
+                label: 'Ensaios',
+                data: Object.values(equipamentos),
+                backgroundColor: '#f59e0b'
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: { y: { beginAtZero: true } },
+              plugins: { legend: { display: false } }
+            }
+          });
+        }
+
+        // Tabela
+        let html = '<table><thead><tr>';
+        html += '<th>Data</th><th>Equipamento</th><th>Técnico</th><th>Resultado</th>';
+        html += '</tr></thead><tbody>';
+        
+        data.registos.forEach(r => {
+          html += `<tr>
+            <td>${r.data || '-'}</td>
+            <td>${r.equipamento || '-'}</td>
+            <td>${r.nomeTecnico || '-'}</td>
+            <td>${r.resultado || '-'}</td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = `<p class="text-red-600">Erro ao carregar: ${error.message}</p>`;
+      }
+    }
+
+    function verDetalhe(id) {
+      const equip = dadosEquipamentos[id];
+      const contentor = document.getElementById('detalhe-conteudo');
+      let html =
+        `<div class="bg-blue-600 p-4 text-white">
+          <h3 class="text-lg font-bold">${equip.titulo}</h3>
+          <p class="text-xs opacity-90 italic">Ficha Técnica - Apenas Consulta</p>
+        </div>
+        <div class="p-4 space-y-2">`;
+
+      equip.campos.forEach(campo => {
+        html += `<div class="detail-row">
+          <span class="detail-label">${campo[0]}</span>
+          <span class="detail-value">${campo[1]}</span>
+        </div>`;
+      });
+
+      html += `</div>`;
+      contentor.innerHTML = html;
+      document.getElementById('lista-equipamentos').classList.add('hidden');
+      document.getElementById('detalhe-equipamento').classList.remove('hidden');
+    }
+
+    function voltarLista() {
+      document.getElementById('lista-equipamentos').classList.remove('hidden');
+      document.getElementById('detalhe-equipamento').classList.add('hidden');
+    }
+
+    function calcularTotal() {
+      const antes = parseFloat(document.getElementById('q_antes').value) || 0;
+      const rec = parseFloat(document.getElementById('q_rec').value) || 0;
+      const add = parseFloat(document.getElementById('q_add').value) || 0;
+      document.getElementById('q_total').value = (rec + add).toFixed(2);
+    }
+
+    async function saveData(event, type) {
+      event.preventDefault();
+      const form = event.target;
+      const btn = form.querySelector('button[type="submit"]');
+
+      const formData = new FormData(form);
+      const payload = { tipo: type };
+      formData.forEach((value, key) => payload[key] = value);
+
+      // Guard rails
+      if (!SCRIPT_URL || !SCRIPT_URL.includes("/exec")) {
+        showToast("Erro: URL do Apps Script inválido (tem de terminar em /exec).", "bg-red-600");
+        return;
+      }
+
+      btn.classList.add('btn-loading');
+      const oldText = btn.textContent;
+      btn.textContent = "A gravar...";
+
+      try {
+        // Importante: text/plain evita preflight em muitos cenários
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch { json = { raw: text }; }
+
+        if (!res.ok || !json || json.result !== "success") {
+          const msg = (json && json.message)
+            ? json.message
+            : `Falha (HTTP ${res.status}). Resposta: ${text}`;
+          throw new Error(msg);
+        }
+
+        // confirmação real
+        showToast(`Gravado ✅ (${json.sheet} · linha ${json.row})`, "bg-green-600");
+
+        form.reset();
+        if (type === "intervencoes") {
+          const qt = document.getElementById("q_total");
+          if (qt) qt.value = "";
+        }
+
+      } catch (error) {
+        const msg = String(error).includes("Failed to fetch")
+          ? "Falha de ligação (CORS/permissões). Confirma: Web App público (Qualquer pessoa) e URL /exec."
+          : (error.message || String(error));
+
+        showToast("Erro: " + msg, "bg-red-600");
+        console.error(error);
+
+      } finally {
+        btn.classList.remove('btn-loading');
+        btn.textContent = oldText;
+      }
+    }
+
+    function showToast(msg, colorClass) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = `fixed bottom-4 right-4 text-white px-6 py-3 rounded shadow-lg ${colorClass}`;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 4500);
+    }
+
+    // Só para dar um "sinal de vida" na UI
+    (function initStatus() {
+      const el = document.getElementById("status-pill");
+      if (!SCRIPT_URL || !SCRIPT_URL.includes("/exec")) {
+        el.textContent = "URL inválido";
+        el.parentElement.className = "pill";
+        return;
+      }
+      el.textContent = "pronto";
+    })();
+  </script>
+</body>
+</html>
