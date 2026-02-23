@@ -877,19 +877,41 @@
         const resEquip = await fetch(SCRIPT_URL + '?action=getEquipamentos', { method: 'GET' });
         const dataEquip = await resEquip.json();
         const selectEquip = document.getElementById('filter-equipamento');
-        if (dataEquip.equipamentos) {
-          dataEquip.equipamentos.forEach(e => {
-            const option = document.createElement('option');
-            option.value = e;
-            option.textContent = e;
-            selectEquip.appendChild(option);
-          });
+        
+        // Limpar opções adicionadas anteriormente (manter apenas "Todos")
+        while (selectEquip.options.length > 1) {
+          selectEquip.remove(1);
         }
+        
+        let equipamentos = dataEquip.equipamentos || [];
+        
+        // Fallback: se não houver equipamentos, usar lista hardcoded
+        if (!equipamentos || equipamentos.length === 0) {
+          equipamentos = [
+            'SLZ-M (Sala Reuniões R/c)',
+            'SLZ-M (Servidor)',
+            'AU342XHERA',
+            'AU362AHERA'
+          ];
+        }
+        
+        equipamentos.forEach(e => {
+          const option = document.createElement('option');
+          option.value = e;
+          option.textContent = e;
+          selectEquip.appendChild(option);
+        });
 
         // Carregar gases
         const resGas = await fetch(SCRIPT_URL + '?action=getGases', { method: 'GET' });
         const dataGas = await resGas.json();
         const selectGas = document.getElementById('filter-gas');
+        
+        // Limpar opções adicionadas anteriormente (manter apenas "Todos")
+        while (selectGas.options.length > 1) {
+          selectGas.remove(1);
+        }
+        
         if (dataGas.gases) {
           dataGas.gases.forEach(g => {
             const option = document.createElement('option');
