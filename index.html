@@ -16,8 +16,27 @@
     .form-section { display: none; }
     .form-section.active { display: block; }
     input, select, textarea {
-      width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px;
-      background: #fff;
+      width: 100%; padding: 12px 24px !important; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px;
+      background: #fff !important; box-sizing: border-box; transition: background-color 0.2s ease;
+    }
+    input.shaded {
+      background-color: #f9fafb !important;
+    }
+    input.shaded.filled {
+      background-color: #ffffff !important;
+    }
+    input.filled, select.filled, textarea.filled,
+    input:not(:placeholder-shown), textarea:not(:empty) {
+      background: #ffffff !important;
+    }
+    input:focus, select:focus, textarea:focus {
+      background: #ffffff !important;
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    input.shaded:not(.filled) {
+      background-color: #f9fafb !important;
     }
     label { font-weight: 600; font-size: 0.875rem; color: #374151; }
     .readonly-card {
@@ -90,13 +109,13 @@
               </select>
             </div>
 
-            <div><label>N.º da Ficha do Caderno de Registo do Técnico Certificado</label><input type="text" name="nFicha" placeholder="N.º da Ficha"></div>
-            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico" placeholder="Nome completo"></div>
-            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico"></div>
-            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa"></div>
-            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa"></div>
-            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa"></div>
-            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa"></div>
+            <div><label>N.º da Ficha do Caderno de Registo do Técnico Certificado</label><input type="text" name="nFicha" placeholder="N.º da Ficha" class="shaded"></div>
+            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico" placeholder="Nome completo" class="shaded"></div>
+            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico" class="shaded"></div>
+            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa" class="shaded"></div>
+            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa" class="shaded"></div>
+            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa" class="shaded"></div>
+            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
             <div class="md:col-span-2"><label>Locais onde foi efetuada deteção de fugas</label><textarea name="locais" rows="2"></textarea></div>
 
             <div>
@@ -145,13 +164,13 @@
               </select>
             </div>
 
-            <div><label>N.º da Ficha do Caderno de Registo do Técnico</label><input type="text" name="nFicha"></div>
-            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico"></div>
-            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico"></div>
-            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa"></div>
-            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa"></div>
-            <div><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa"></div>
-            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa"></div>
+            <div><label>N.º da Ficha do Caderno de Registo do Técnico</label><input type="text" name="nFicha" class="shaded"></div>
+            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico" class="shaded"></div>
+            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico" class="shaded"></div>
+            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa" class="shaded"></div>
+            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa" class="shaded"></div>
+            <div><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
+            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa" class="shaded"></div>
 
             <div><label>Identificação do Fluido Frigorigéneo</label><input type="text" name="fluido" placeholder="Ex: R32, R410A"></div>
             <div><label>Tipo de Intervenção Efetuada</label><input type="text" name="tipoIntervencao" placeholder="Ex: Carga, Recuperação"></div>
@@ -205,13 +224,13 @@
               </select>
             </div>
 
-            <div><label>N.º da Ficha do Caderno de Registo do Técnico Certificado</label><input type="text" name="nFicha"></div>
-            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico"></div>
-            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico"></div>
-            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa"></div>
-            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa"></div>
-            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa"></div>
-            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa"></div>
+            <div><label>N.º da Ficha do Caderno de Registo do Técnico Certificado</label><input type="text" name="nFicha" class="shaded"></div>
+            <div><label>Nome do Técnico Certificado</label><input type="text" name="nomeTecnico" class="shaded"></div>
+            <div><label>N.º do Certificado do Técnico Certificado</label><input type="text" name="nCertTecnico" class="shaded"></div>
+            <div><label>Nome da Empresa Certificada</label><input type="text" name="nomeEmpresa" class="shaded"></div>
+            <div><label>N.º do Certificado da Empresa Certificada</label><input type="text" name="nCertEmpresa" class="shaded"></div>
+            <div><label>Nº de Telefone da Empresa Certificada</label><input type="tel" name="telEmpresa" class="shaded"></div>
+            <div class="md:col-span-2"><label>Morada da Empresa Certificada</label><input type="text" name="moradaEmpresa" class="shaded"></div>
             <div class="md:col-span-2"><label>Resultado do Ensaio ao Sistema Automático</label><textarea name="resultado" rows="2"></textarea></div>
             <div class="md:col-span-2"><label>Observações</label><textarea name="obs" rows="2"></textarea></div>
           </div>
@@ -430,6 +449,44 @@
     // ✅ ID do ficheiro (do teu link)
     // https://docs.google.com/spreadsheets/d/1_dlHxttI4K93g801NIQEjXJhp1aFNUIQIKm8Y0WUEeI/edit
     const SPREADSHEET_ID = "1_dlHxttI4K93g801NIQEjXJhp1aFNUIQIKm8Y0WUEeI";
+
+    // Inicializar listeners para shading dos campos
+    function initializeInputShading() {
+      const inputs = document.querySelectorAll('input, select, textarea');
+      console.log('Inicializando shading para', inputs.length, 'campos');
+      
+      inputs.forEach(input => {
+        // Adicionar listeners para detectar mudanças
+        input.addEventListener('input', function() {
+          updateInputShading(this);
+        });
+        input.addEventListener('change', function() {
+          updateInputShading(this);
+        });
+        input.addEventListener('focus', function() {
+          updateInputShading(this);
+        });
+        input.addEventListener('blur', function() {
+          updateInputShading(this);
+        });
+        
+        // Verificar estado inicial
+        updateInputShading(input);
+      });
+    }
+
+    function updateInputShading(input) {
+      const hasValue = input.value && input.value.trim() !== '';
+      if (hasValue) {
+        input.classList.add('filled');
+      } else {
+        input.classList.remove('filled');
+      }
+    }
+
+    // Inicializar imediatamente e com delay para garantir
+    initializeInputShading();
+    setTimeout(initializeInputShading, 100);
 
     const dadosEquipamentos = {
       'slzm_rc': {
